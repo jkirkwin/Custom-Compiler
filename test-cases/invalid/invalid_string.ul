@@ -1,0 +1,4 @@
+void main() {
+    // Strings may not contain non-alphanumeric characters besides !,.:_{} and space.
+    string s = "Hello, brackets []!";
+}

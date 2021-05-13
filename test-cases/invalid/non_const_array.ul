@@ -1,0 +1,8 @@
+void main() {
+    // Shouldn't be allowed because getSize() is not an int literal.
+    int[getSize()] array;
+}
+
+int getSize() {
+    return 10;
+}

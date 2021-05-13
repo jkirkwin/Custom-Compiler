@@ -1,0 +1,4 @@
+// While valid according to the grammar, this file has no main() function
+// and is therefore invalid.
+
+void foo () {}

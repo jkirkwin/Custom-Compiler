@@ -1,0 +1,8 @@
+void main() {
+    int i;
+
+    // This line is missing a semicolon
+    i = 10
+
+    print i;
+}

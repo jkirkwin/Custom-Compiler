@@ -1,0 +1,9 @@
+void main() {
+    int i;
+
+    print i(); // Meant to write j, but instead we're using i as a function.
+}
+
+int j() {
+    return 1;
+}

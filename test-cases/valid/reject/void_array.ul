@@ -1,0 +1,8 @@
+void main() {
+    createVoidArray();
+}
+
+void createVoidArray() {
+    // Since void is a type, this is allowed by the grammar, but is clearly nonsense.
+    void[2] voidArray;
+}

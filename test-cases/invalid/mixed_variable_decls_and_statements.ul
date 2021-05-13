@@ -1,0 +1,6 @@
+void main() {
+    int i;
+    i = 10;
+    
+    int j; // Not allowed, all variable declarations must precede all statements.
+}

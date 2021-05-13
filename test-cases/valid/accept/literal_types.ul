@@ -1,0 +1,13 @@
+void main() {
+    int i;
+    float f;
+    char c;
+    string s;
+    boolean b;
+
+    i = 1;
+    f = 1.1;
+    c = 'a';
+    s = "abc";
+    b = false;
+}

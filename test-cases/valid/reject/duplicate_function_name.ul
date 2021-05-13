@@ -1,0 +1,11 @@
+void main() {
+    foo();
+}
+
+void foo() {
+
+}
+
+void foo() {
+    
+}
