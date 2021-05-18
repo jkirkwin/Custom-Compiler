@@ -1,0 +1,6 @@
+void main() {
+    int i;
+    i = 10;
+    print i;
+    return; // We can still use the return keyword even if there's no type.
+}

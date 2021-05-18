@@ -101,7 +101,7 @@ printlnStatement
         ;
 
 returnStatement
-        : RETURN expression SEMICOLON
+        : RETURN expression? SEMICOLON
         ;
 
 assignmentStatement
@@ -284,7 +284,7 @@ FLOAT_CONSTANT
         ;
 
 fragment DIGIT_FRAGMENT
-        : '1'..'9'
+        : '0'..'9'
         ;
 
  // Do not allow empty strings.
