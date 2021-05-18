@@ -1,0 +1,9 @@
+void main() {
+    boolean b;
+    int i;
+    
+    i = 1 + (2 - 3) * 4;  
+    b = i < 2 == true;
+
+    print b;
+}
