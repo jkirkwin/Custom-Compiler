@@ -1,0 +1,15 @@
+void doWork(int n) {
+    while (0 < n) {
+        n = n - 1;
+        ;;;;;;;;;;;;;;;; // A bunch of empty statements
+        if (true) {
+            ;;
+            print "Hello123"
+            ;;;
+        }
+    }
+}
+
+void main() {
+    doWork(100);
+}
