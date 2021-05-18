@@ -1,0 +1,7 @@
+void main() {
+    print_stuff();
+}
+
+int print_stuff(void v) {
+    print (v);
+}
