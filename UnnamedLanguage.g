@@ -69,10 +69,12 @@ compoundType
         | type OPEN_BRACKET INTEGER_CONSTANT CLOSE_BRACKET
         ;
 
-statement options {backtrack=true;} // TODO is it okay to have this here? It resolves a recursion error.
+statement 
+options {
+        backtrack=true; // TODO is it okay to have this here? It resolves a recursion error.
+}
         : SEMICOLON
         | expression SEMICOLON
-        | ifStatement
         | ifElseStatement
         | whileStatement
         | printStatement
@@ -82,12 +84,8 @@ statement options {backtrack=true;} // TODO is it okay to have this here? It res
         | arrayAssignmentStatement
         ;
 
-ifStatement
-        : IF OPEN_PAREN expression CLOSE_PAREN block
-        ;
-
 ifElseStatement
-        : ifStatement ELSE block
+        : IF OPEN_PAREN expression CLOSE_PAREN block (ELSE block)?
         ;
 
 whileStatement

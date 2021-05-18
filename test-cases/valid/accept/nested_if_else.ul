@@ -1,0 +1,21 @@
+void main() {
+    boolean t;
+    boolean f;
+
+    t = true;
+    f = false;
+
+    if (t) {
+        if (t) {
+            println "Seems likely";
+        }
+        else {
+            println "True and false are equivalent";
+        }
+    }
+    else {
+        if (f) {
+            println ("False is true!");
+        }
+    }
+}
