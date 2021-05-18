@@ -7,6 +7,7 @@ Lexing and parser generation is handled by ANTLR. Note that version 3.5.2 of ANT
 
 ## Running the code
 
-Once you have built or downloaded an appropriate ANTLR Jar, ensure it is in your `CLASSPATH`.
-
-
+* Download (or build) an appropriate (v3.*.*) ANTLR Jar
+* Add the ANTLR jar file to your `CLASSPATH`
+* Build the compiler with `make`
+* Compile an input file with `java Compiler <inputfile>`
