@@ -149,7 +149,7 @@ expression
 //         ;
 
 functionCall
-        : identifier OPEN_PAREN expressionList CLOSE_PAREN
+        : identifier OPEN_PAREN expressionList? CLOSE_PAREN
         ;
 
 expressionList

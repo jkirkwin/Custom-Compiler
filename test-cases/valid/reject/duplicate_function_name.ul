@@ -3,9 +3,9 @@ void main() {
 }
 
 void foo() {
-
 }
 
 void foo() {
-    
+    float f;
+    print f;
 }
