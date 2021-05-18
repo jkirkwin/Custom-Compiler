@@ -4,7 +4,7 @@ void main() {
     strings[1] = "!,.:_{}";
     strings[2] = "0123456789"
     strings[3] = "abc...z"
-    strings[4] = ""; // I'm not 100% sure whether we'll support the empty string.
+    strings[4] = " ";
 
     printStrings(strings);
 }
