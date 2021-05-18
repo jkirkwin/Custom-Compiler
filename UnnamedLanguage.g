@@ -129,11 +129,12 @@ expressionAtom
         ;
 
 functionCall
-        : identifier OPEN_PAREN expressionList? CLOSE_PAREN
+        : identifier OPEN_PAREN expressionList CLOSE_PAREN
         ;
 
 expressionList
         : expression exprMore*
+        | // Can be empty
         ;
 
 arrayReference
