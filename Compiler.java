@@ -37,8 +37,11 @@ public class Compiler {
 		catch (RecognitionException e )	{
 			// A lexical or parsing error occured.
 			// ANTLR will have already printed information on the
-			// console due to code added to the grammar.  So there is
-			// nothing to do here.
+			// console due to code added to the grammar, so we don't
+			// need to print anything manually.
+
+			// Allows error codes checking to automate testing.
+			System.exit(1); 
 		}
 		catch (Exception e) {
 			System.out.println(e);
