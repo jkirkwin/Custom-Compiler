@@ -101,35 +101,32 @@ block
         : OPEN_BRACE statement* CLOSE_BRACE
         ;
 
-// TODO Add operators with precedence.
+// We nest expressions which use binary operators in increasing order
+// of precedence to enforce precedence rules and prevent left-recursion
+// issues.
 expression
+        : lessThanExpression (EQUAL_COMPARISON lessThanExpression)*
+        ;
+
+lessThanExpression
+        : plusMinusExpression (LESS_THAN plusMinusExpression)*
+        ;
+
+plusMinusExpression
+        : multExpression ((PLUS | MINUS) multExpression)*
+        ;
+
+multExpression
+        : expressionAtom (MULTIPLY expressionAtom)*
+        ;
+
+expressionAtom
         : arrayReference
         | functionCall
         | identifier
         | literal
         | OPEN_PAREN expression CLOSE_PAREN
         ;
-
-// lessThanExpression
-//         : plusMinusExpression ( LESS_THAN plusMinusExpression)*
-//         ;
-
-// plusMinusExpression
-//         : multExpression ( (PLUS | MINUS) multExpression)*
-//         ;
-
-// multExpression
-//         : expressionAtom (MULTIPLY expressionAtom)*
-//         ;
-
-// expressionAtom
-// // options { backtrack=true; } // TODO is this required?
-//         : identifier
-//         | literal
-//         | functionCall
-//         | arrayReference
-//         | OPEN_PAREN expression CLOSE_PAREN
-//         ;
 
 functionCall
         : identifier OPEN_PAREN expressionList? CLOSE_PAREN
