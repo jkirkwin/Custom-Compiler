@@ -299,7 +299,7 @@ CHARACTER_CONSTANT
         ;
 
 fragment CHARACTER_FRAGMENT 
-        : ('a'..'z' | 'A'..'Z' | '0'..'9' | '!' | '_' | ',' | '.' | ':' | '{' | '}')
+        : ('a'..'z' | 'A'..'Z' | '0'..'9' | '!' | '_' | ',' | '.' | ':' | '{' | '}' | ' ')
         ;
 /*
  * An identifier, shown as id in the grammar, is a sequence
