@@ -1,5 +1,7 @@
 grammar UnnamedLanguage;
-				
+
+// options { backtrack=true; } // TODO needed?
+
 @members
 {
 protected void mismatch (IntStream input, int ttype, BitSet follow)
@@ -24,7 +26,8 @@ public Object recoverFromMismatchedSet (IntStream input,
         }
 }
 
-/*
+// TODO remove this comment
+/* 
  * This is a subset of the ul grammar to show you how to make new
  * production rules.
  * 
@@ -50,7 +53,7 @@ formalParameters
         ;
 
 moreFormals
-        : COMMA compoundType identifier moreFormals* 
+        : COMMA compoundType identifier
         ;
 
 functionBody
@@ -63,47 +66,98 @@ varDecl
 
 compoundType
         : type 
-        | type OPEN_BRACE INTEGER_CONSTANT CLOSE_BRACE
+        | type OPEN_BRACKET INTEGER_CONSTANT CLOSE_BRACKET
         ;
 
-statement
+statement options {backtrack=true;} // TODO is it okay to have this here? It resolves a recursion error.
         : SEMICOLON
         | expression SEMICOLON
-        | IF OPEN_PAREN expression CLOSE_PAREN block
-        | IF OPEN_PAREN expression CLOSE_PAREN block ELSE block
-        | WHILE OPEN_PAREN expression CLOSE_PAREN block
-        | PRINT expression
-        | PRINTLN expression
-        | RETURN expression
-        | identifier EQUAL_ASSIGNMENT expression SEMICOLON
-        | identifier OPEN_BRACKET expression CLOSE_BRACKET EQUAL_ASSIGNMENT expression SEMICOLON
+        | ifStatement
+        | ifElseStatement
+        | whileStatement
+        | printStatement
+        | printlnStatement
+        | returnStatement
+        | assignmentStatement
+        | arrayAssignmentStatement
+        ;
+
+ifStatement
+        : IF OPEN_PAREN expression CLOSE_PAREN block
+        ;
+
+ifElseStatement
+        : ifStatement ELSE block
+        ;
+
+whileStatement
+        : WHILE OPEN_PAREN expression CLOSE_PAREN block
+        ;
+
+printStatement
+        : PRINT expression SEMICOLON
+        ;
+
+printlnStatement
+        : PRINTLN expression SEMICOLON
+        ;
+
+returnStatement
+        : RETURN expression SEMICOLON
+        ;
+
+assignmentStatement
+        : identifier EQUAL_ASSIGNMENT expression SEMICOLON
+        ;
+
+arrayAssignmentStatement
+        : arrayReference EQUAL_ASSIGNMENT expression SEMICOLON
         ;
 
 block
-        : OPEN_BRACE expression CLOSE_BRACE
+        : OPEN_BRACE statement* CLOSE_BRACE
         ;
 
-// TODO refactor expression and operator to deal with left-recursion and operator precedence 
+// TODO Add operators with precedence.
 expression
-        : expression operator expression
-        | identifier OPEN_BRACKET expression CLOSE_BRACKET
-        | identifier OPEN_PAREN expressionList CLOSE_PAREN
+        : arrayReference
+        | functionCall
         | identifier
         | literal
         | OPEN_PAREN expression CLOSE_PAREN
         ;
 
-operator
-        : 
-        | EQUAL_COMPARISON
-        | LESS_THAN
-        | PLUS
-        | MINUS
-        | MULTIPLY
+// lessThanExpression
+//         : plusMinusExpression ( LESS_THAN plusMinusExpression)*
+//         ;
+
+// plusMinusExpression
+//         : multExpression ( (PLUS | MINUS) multExpression)*
+//         ;
+
+// multExpression
+//         : expressionAtom (MULTIPLY expressionAtom)*
+//         ;
+
+// expressionAtom
+// // options { backtrack=true; } // TODO is this required?
+//         : identifier
+//         | literal
+//         | functionCall
+//         | arrayReference
+//         | OPEN_PAREN expression CLOSE_PAREN
+//         ;
+
+functionCall
+        : identifier OPEN_PAREN expressionList CLOSE_PAREN
         ;
 
 expressionList
         : expression exprMore*
+        ;
+
+arrayReference
+        : identifier OPEN_BRACKET expression CLOSE_BRACKET
         ;
 
 exprMore
@@ -224,22 +278,29 @@ TYPE	:
 
 // Literal values
 INTEGER_CONSTANT
-        : ('1'..'9')('0'..'9')*
+        : DIGIT_FRAGMENT DIGIT_FRAGMENT*
         ;
 
 FLOAT_CONSTANT
-        : ('1'..'9')('0'..'9')* '.' ('0'..'9')+
+        : DIGIT_FRAGMENT DIGIT_FRAGMENT* '.' DIGIT_FRAGMENT+
         ;
 
- // TODO allow empty strings?
+fragment DIGIT_FRAGMENT
+        : '1'..'9'
+        ;
+
+ // Do not allow empty strings.
 STRING_CONSTANT
-        : '"' ('a'..'z' | 'A'..'Z' | '0'..'9' | '!' | '_' | ',' | '.' | ':' | '{' | '}')* '"'
+        : '"' CHARACTER_FRAGMENT+ '"'
         ;
 
 CHARACTER_CONSTANT
-        : '\'' ('a'..'z' | 'A'..'Z' | '0'..'9' | '!' | '_' | ',' | '.' | ':' | '{' | '}') '\''
+        : '\'' CHARACTER_FRAGMENT '\''
         ;
 
+fragment CHARACTER_FRAGMENT 
+        : ('a'..'z' | 'A'..'Z' | '0'..'9' | '!' | '_' | ',' | '.' | ':' | '{' | '}')
+        ;
 /*
  * An identifier, shown as id in the grammar, is a sequence
  * of letters, digits and the underscore character. An 
