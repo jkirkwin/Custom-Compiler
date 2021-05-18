@@ -1,13 +1,31 @@
 void main() {
     int i;
+    int i_with_leading_0s;
+
     float f;
+    float f_with_leading_0s;
+
     char c;
+    char c_space;
+
     string s;
-    boolean b;
+    string s_spaces;
+
+    boolean b_t;
+    boolean b_f;
 
     i = 1;
+    i_with_leading_0s = 00000000;
+    
     f = 1.1;
+    f_with_leading_0s = 00000000.000000;
+
     c = 'a';
+    c_space = ' ';
+
     s = "abc";
-    b = false;
+    s_spaces = "  ";
+
+    b_t = true;
+    b_f = false;
 }
