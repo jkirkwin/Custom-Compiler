@@ -1,22 +1,17 @@
 grammar UnnamedLanguage;
 
-// options { backtrack=true; } // TODO needed?
-
 @members
 {
-protected void mismatch (IntStream input, int ttype, BitSet follow)
-        throws RecognitionException
-{
-        throw new MismatchedTokenException(ttype, input);
-}
-public Object recoverFromMismatchedSet (IntStream input,
-                                      RecognitionException e,
-                                      BitSet follow)
-        throws RecognitionException
-{
-        reportError(e);
-        throw e;
-}
+        protected void mismatch (IntStream input, int ttype, BitSet follow) throws RecognitionException
+        {
+                throw new MismatchedTokenException(ttype, input);
+        }
+        public Object recoverFromMismatchedSet (IntStream input, RecognitionException e, BitSet follow) 
+                throws RecognitionException
+        {
+                reportError(e);
+                throw e;
+        }
 }
 
 @rulecatch {
@@ -26,17 +21,7 @@ public Object recoverFromMismatchedSet (IntStream input,
         }
 }
 
-// TODO remove this comment
-/* 
- * This is a subset of the ul grammar to show you how to make new
- * production rules.
- * 
- * You will need to:
- *  - change type to be compoundType and include appropriate productions
- *  - introduce optional formalParameters
- *  - change functionBody to include variable declarations and statements 
- */
-
+// Starting production
 program : function+ EOF
 	;
 
@@ -71,7 +56,7 @@ compoundType
 
 statement 
 options {
-        backtrack=true; // TODO is it okay to have this here? It resolves a recursion error.
+        backtrack=true; // Necessary to prevent recursion errors
 }
         : SEMICOLON
         | expression SEMICOLON
@@ -276,20 +261,21 @@ TYPE	:
 
 // Literal values
 INTEGER_CONSTANT
-        : DIGIT_FRAGMENT DIGIT_FRAGMENT*
+        // Note that this allows leading 0's
+        : DIGIT_FRAGMENT DIGIT_FRAGMENT* 
         ;
 
 FLOAT_CONSTANT
-        : DIGIT_FRAGMENT DIGIT_FRAGMENT* '.' DIGIT_FRAGMENT+
+        // Note that this allows leading 0's
+        : DIGIT_FRAGMENT DIGIT_FRAGMENT* '.' DIGIT_FRAGMENT+ 
         ;
 
 fragment DIGIT_FRAGMENT
         : '0'..'9'
         ;
 
- // Do not allow empty strings.
 STRING_CONSTANT
-        : '"' CHARACTER_FRAGMENT+ '"'
+        : '"' CHARACTER_FRAGMENT+ '"' // We do not allow empty strings.
         ;
 
 CHARACTER_CONSTANT

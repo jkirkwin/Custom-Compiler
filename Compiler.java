@@ -32,20 +32,24 @@ public class Compiler {
 		UnnamedLanguageParser parser = new UnnamedLanguageParser(tokens);
 
 		try {
-			parser.program();
+			// TODO why is this not throwing an exception for identifiers with special
+			// characters?
+			parser.program(); 
 		}
 		catch (RecognitionException e )	{
 			// A lexical or parsing error occured.
-			// ANTLR will have already printed information on the
-			// console due to code added to the grammar, so we don't
-			// need to print anything manually.
+			// ANTLR will have already printed information about the error
+			// to System.err.
 
-			// Allows error codes checking to automate testing.
+			// Allows error code checking to automate testing.
 			System.exit(1); 
 		}
 		catch (Exception e) {
 			System.out.println(e);
 			e.printStackTrace();
+
+			// Allow error code checking to automate testing.
+			System.exit(1);
 		}
 	}
 }
