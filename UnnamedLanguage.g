@@ -51,7 +51,7 @@ varDecl
 
 compoundType
         : type 
-        | type OPEN_BRACKET INTEGER_CONSTANT CLOSE_BRACKET
+        | type OPEN_BRACKET intLiteral CLOSE_BRACKET
         ;
 
 statement 
@@ -146,14 +146,36 @@ exprMore
         ;
 
 literal
+        : stringLiteral
+        | intLiteral
+        | floatLiteral
+        | charLiteral
+        | booleanLiteral
+        ;
+
+stringLiteral
         : STRING_CONSTANT
-        | INTEGER_CONSTANT
-        | FLOAT_CONSTANT
-        | CHARACTER_CONSTANT
-        | TRUE
+        ;
+
+
+intLiteral
+        : INTEGER_CONSTANT
+        ;
+
+floatLiteral
+        : FLOAT_CONSTANT
+        ;
+
+
+charLiteral
+        : CHARACTER_CONSTANT
+        ;
+
+booleanLiteral
+        : TRUE
         | FALSE
         ;
-        
+
 identifier 
         : ID
 	;
