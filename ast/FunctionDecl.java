@@ -6,6 +6,11 @@ package ast;
  */
 public class FunctionDecl extends ASTNode {
 
-    // TODO Should contain return type, name, and formal params
+    public final TypeNode typeNode;
+
+    public FunctionDecl(TypeNode typeNode) {
+        this.typeNode = typeNode; // TODO Needs formal params and an id
+        // TODO call superclass constructor with appropriate line and offset. Use identifier or type?
+    }
 
 }

@@ -51,8 +51,12 @@ function // TODO Return a function and collect them into a list in the parent ru
 	;
 
 functionDecl returns [FunctionDecl d]
-        : compoundType identifier OPEN_PAREN formalParameters CLOSE_PAREN 
-        { d = new FunctionDecl(); } // TODO Add parameters for the function declaration
+        : typeNode = compoundType 
+          identifier 
+          OPEN_PAREN 
+          formalParameters 
+          CLOSE_PAREN 
+        { d = new FunctionDecl(typeNode); } // TODO Add parameters for the function declaration
 	;
 
 formalParameters
@@ -75,9 +79,12 @@ varDecl
         : compoundType identifier SEMICOLON
         ;
 
-compoundType
-        : type 
-        | type OPEN_BRACKET intLiteral CLOSE_BRACKET
+compoundType returns [TypeNode typeNode]
+        : node = type { typeNode = node; }
+        | simpleType = type OPEN_BRACKET size = intLiteral CLOSE_BRACKET {
+            // TODO Should construct a typenode here for the full compound type
+            return simpleType;
+          } 
         ;
 
 statement 
@@ -206,8 +213,13 @@ identifier
         : ID
 	;
 
-type
-        : TYPE
+type returns [TypeNode t]
+        : TYPE 
+        {
+            // TODO Create a TypeNode instance with the proper Type parameter instead of the string 
+            String typeString = $TYPE.text;
+            t = new TypeNode(typeString, $TYPE.line, $TYPE.pos);
+        }
 	;
 
 /* Lexer */

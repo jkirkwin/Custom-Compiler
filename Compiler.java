@@ -35,15 +35,18 @@ public class Compiler {
 		try {
 			// TODO why is this not throwing an exception when parsing identifiers with special characters?
 			Program program = parser.program();
-			System.out.println("Found " + program.functions.size() + " functions");
-		}
-		catch (RecognitionException e )	{
-			// A lexical or parsing error occured.
-			// ANTLR will have already printed information about the error
-			// to System.err.
+			System.out.println("Found " + program.functions.size() + " functions with types:");
+            for (Function f : program.functions) {
+                    System.out.println(f.declaration.typeNode.typeString);
+            }
+        }
+        catch (RecognitionException e )	{
+    		// A lexical or parsing error occured.
+	    	// ANTLR will have already printed information about the error
+		    // to System.err.
 
-			// Allows error code checking to automate testing.
-			System.exit(1); 
+		    // Allows error code checking to automate testing.
+		    System.exit(1); 
 		}
 		catch (Exception e) {
 			System.out.println(e);
