@@ -50,13 +50,13 @@ function // TODO Return a function and collect them into a list in the parent ru
         }
 	;
 
-functionDecl returns [FunctionDecl d]
+functionDecl returns [FunctionDecl declNode]
         : typeNode = compoundType 
-          identifier 
+          idNode = identifier 
           OPEN_PAREN 
           formalParameters 
           CLOSE_PAREN 
-        { d = new FunctionDecl(typeNode); } // TODO Add parameters for the function declaration
+        { declNode = new FunctionDecl(typeNode, idNode); } // TODO Add missing params for constructor. TODO Update type param?
 	;
 
 formalParameters
@@ -209,8 +209,8 @@ booleanLiteral
         | FALSE
         ;
 
-identifier 
-        : ID
+identifier returns [Identifier idNode]
+        : ID { idNode = new Identifier($ID.text, $ID.line, $ID.pos); }
 	;
 
 type returns [TypeNode t]

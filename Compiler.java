@@ -35,9 +35,13 @@ public class Compiler {
 		try {
 			// TODO why is this not throwing an exception when parsing identifiers with special characters?
 			Program program = parser.program();
-			System.out.println("Found " + program.functions.size() + " functions with types:");
+			System.out.println("Found " + program.functions.size() + " functions:");
             for (Function f : program.functions) {
-                    System.out.println(f.declaration.typeNode.typeString);
+                    var decl = f.declaration;
+                    String type = decl.typeNode.typeString;
+                    String id = decl.identifier.value;
+                    String position = "(" + decl.line + ", " + decl.offset + ")";
+                    System.out.println("\t " + position + " " + type + " " + id);
             }
         }
         catch (RecognitionException e )	{
