@@ -17,6 +17,12 @@ grammar UnnamedLanguage;
                 reportError(e);
                 throw e;
         }
+
+
+        // TODO This is a hack because I can't seem to make lists work with the function+
+        //      regex in the program rule. This should definitely be removed and return values
+        //      used in the function rule instead.
+        List<Function> functions = new ArrayList<Function>();
 }
 
 @rulecatch {
@@ -27,12 +33,21 @@ grammar UnnamedLanguage;
 }
 
 // Starting production
-program returns [Program p]
-        : function+ EOF { p = new Program(); }
+program returns [Program p] 
+        : function+
+        { 
+                p = new Program(functions);
+        } 
+        EOF
 	;
 
-function
-        : functionDecl functionBody
+function // TODO Return a function and collect them into a list in the parent rule rather
+         //      than relying on the member.  
+        : functionDecl functionBody 
+        { 
+            Function f = new Function(); 
+            functions.add(f);
+        } // TODO add decl, body parameters to ctor
 	;
 
 functionDecl

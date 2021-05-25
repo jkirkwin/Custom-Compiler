@@ -11,7 +11,8 @@ public class Program extends ASTNode {
 
     /**
      * The functions included in the program, listed in the order they 
-     * were defined in.
+     * were defined in. This list *is* mutable to allow the compiler to
+     * add functions as they are parsed.
      */
     public final List<Function> functions;
 
@@ -31,10 +32,4 @@ public class Program extends ASTNode {
         super(0, 0);
         this.functions = new ArrayList<Function>(functionCollection);
     }
-
-    // TEMP for testing. TODO Delete
-    public Program() {
-        this.functions = new ArrayList<Function>();
-    }
-
 }

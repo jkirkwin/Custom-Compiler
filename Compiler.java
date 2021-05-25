@@ -35,6 +35,7 @@ public class Compiler {
 		try {
 			// TODO why is this not throwing an exception when parsing identifiers with special characters?
 			Program program = parser.program();
+			System.out.println("Found " + program.functions.size() + " functions");
 		}
 		catch (RecognitionException e )	{
 			// A lexical or parsing error occured.
