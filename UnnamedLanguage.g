@@ -1,5 +1,10 @@
 grammar UnnamedLanguage;
 
+@header 
+{
+        import ast.*;
+}
+
 @members
 {
         protected void mismatch (IntStream input, int ttype, BitSet follow) throws RecognitionException
@@ -22,10 +27,12 @@ grammar UnnamedLanguage;
 }
 
 // Starting production
-program : function+ EOF
+program returns [Program p]
+        : function+ EOF { p = new Program(); }
 	;
 
-function: functionDecl functionBody
+function
+        : functionDecl functionBody
 	;
 
 functionDecl
