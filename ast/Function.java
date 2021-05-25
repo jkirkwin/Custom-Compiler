@@ -6,6 +6,15 @@ package ast;
  */
 public class Function extends ASTNode {
 
-    // TODO Function should contain a FunctionDeclaration and a FunctionBody
+    public final FunctionDecl declaration;
+    public final FunctionBody body;
 
+    /**
+     * Construct a new Function with the specified declaration and body.
+     */
+    public Function(FunctionDecl decl, FunctionBody body) {
+        super(decl); // Copy the line and offset of the declaration
+        this.declaration = decl;
+        this.body = body;
+    }
 }

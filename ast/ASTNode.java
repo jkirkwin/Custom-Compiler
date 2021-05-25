@@ -39,4 +39,13 @@ public class ASTNode {
         this.offset = offset;
     }
 
+    /**
+     * Constructs an ASTNode with the same values for {@link line} and
+     * {@link offset} as the provided ASTNode.
+     */
+    protected ASTNode(ASTNode node) {
+        this.line = node.line;
+        this.offset = node.offset;
+    }
+
 }

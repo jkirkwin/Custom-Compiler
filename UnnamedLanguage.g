@@ -43,15 +43,16 @@ program returns [Program p]
 
 function // TODO Return a function and collect them into a list in the parent rule rather
          //      than relying on the member.  
-        : functionDecl functionBody 
+        : decl=functionDecl body=functionBody 
         { 
-            Function f = new Function(); 
+            Function f = new Function(decl, body); 
             functions.add(f);
-        } // TODO add decl, body parameters to ctor
+        }
 	;
 
-functionDecl
-        : compoundType identifier OPEN_PAREN formalParameters CLOSE_PAREN
+functionDecl returns [FunctionDecl d]
+        : compoundType identifier OPEN_PAREN formalParameters CLOSE_PAREN 
+        { d = new FunctionDecl(); } // TODO Add parameters for the function declaration
 	;
 
 formalParameters
@@ -63,8 +64,11 @@ moreFormals
         : COMMA compoundType identifier
         ;
 
-functionBody
-        : OPEN_BRACE varDecl* statement* CLOSE_BRACE
+functionBody returns [FunctionBody b]
+        : OPEN_BRACE varDecl* statement* CLOSE_BRACE 
+        {
+            b = new FunctionBody(); 
+        } // TODO Add parameters for the function body
 	;
 
 varDecl
