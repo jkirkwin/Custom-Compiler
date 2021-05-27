@@ -83,13 +83,15 @@ formalParameter returns [FormalParameter formalParamNode]
 functionBody returns [FunctionBody bodyNode]
 @init {
     List<VariableDeclaration> varDecls = new ArrayList<VariableDeclaration>();
+    List<Statement> stmts = new ArrayList<Statement>();
 }
         :   OPEN_BRACE 
             (declNode = varDecl {varDecls.add(declNode);} )* 
-            statement* CLOSE_BRACE 
+            (stmtNode = statement {stmts.add(stmtNode);} )* 
+            CLOSE_BRACE 
         {
-            bodyNode = new FunctionBody(varDecls); 
-        } // TODO Add statements to the function body
+            bodyNode = new FunctionBody(varDecls, stmts); 
+        } 
 	;
 
 varDecl returns [VariableDeclaration varDeclNode]
@@ -106,7 +108,7 @@ compoundType returns [TypeNode typeNode]
           } 
         ;
 
-statement 
+statement returns [Statement stmtNode] // TODO Return a statment derivation.
 options { // TODO pretty sure this should be at the top of the file.
         backtrack=true; // Necessary to prevent recursion errors
 }
@@ -121,58 +123,58 @@ options { // TODO pretty sure this should be at the top of the file.
         | arrayAssignmentStatement
         ;
 
-ifElseStatement
+ifElseStatement // TODO Add return for if/else stmt
         : IF OPEN_PAREN expression CLOSE_PAREN block (ELSE block)?
         ;
 
-whileStatement
+whileStatement // TODO Add return for while stmt
         : WHILE OPEN_PAREN expression CLOSE_PAREN block
         ;
 
-printStatement
+printStatement // TODO Add return for print stmt
         : PRINT expression SEMICOLON
         ;
 
-printlnStatement
+printlnStatement // TODO Add return for prinln stmt
         : PRINTLN expression SEMICOLON
         ;
 
-returnStatement
+returnStatement // TODO Add return for return stmt
         : RETURN expression? SEMICOLON
         ;
 
-assignmentStatement
+assignmentStatement // TODO add return for assignment stmt
         : identifier EQUAL_ASSIGNMENT expression SEMICOLON
         ;
 
-arrayAssignmentStatement
+arrayAssignmentStatement // TODO add return for array assignment stmt
         : arrayReference EQUAL_ASSIGNMENT expression SEMICOLON
         ;
 
-block
+block returns [Block blockNode] // TODO Actually create a block here
         : OPEN_BRACE statement* CLOSE_BRACE
         ;
 
 // We nest expressions which use binary operators in increasing order
 // of precedence to enforce precedence rules and prevent left-recursion
 // issues.
-expression
+expression returns [Expression exprNode]
         : lessThanExpression (EQUAL_COMPARISON lessThanExpression)*
         ;
 
-lessThanExpression
+lessThanExpression // TODO Return expression for lessthan expr
         : plusMinusExpression (LESS_THAN plusMinusExpression)*
         ;
 
-plusMinusExpression
+plusMinusExpression // TODO Return expression for +/- expr
         : multExpression ((PLUS | MINUS) multExpression)*
         ;
 
-multExpression
+multExpression // TODO Return expression for mult expr
         : expressionAtom (MULTIPLY expressionAtom)*
         ;
 
-expressionAtom
+expressionAtom // TODO Return expression for atom expr?
         : arrayReference
         | functionCall
         | identifier
@@ -180,16 +182,16 @@ expressionAtom
         | OPEN_PAREN expression CLOSE_PAREN
         ;
 
-functionCall
+functionCall // TODO Return expression for function call expr
         : identifier OPEN_PAREN expressionList CLOSE_PAREN
         ;
 
-expressionList
+expressionList // TODO return list of expressions
         : expression exprMore*
         | // Can be empty
         ;
 
-arrayReference
+arrayReference // TODO return expression for array ref
         : identifier OPEN_BRACKET expression CLOSE_BRACKET
         ;
 
@@ -197,7 +199,7 @@ exprMore
         : COMMA expression
         ;
 
-literal
+literal // TODO Should return expression for literal
         : stringLiteral
         | intLiteral
         | floatLiteral
@@ -205,25 +207,25 @@ literal
         | booleanLiteral
         ;
 
-stringLiteral
+stringLiteral // TODO string literal
         : STRING_CONSTANT
         ;
 
 
-intLiteral
+intLiteral // TODO int literal
         : INTEGER_CONSTANT
         ;
 
-floatLiteral
+floatLiteral // TODO float literal
         : FLOAT_CONSTANT
         ;
 
 
-charLiteral
+charLiteral // TODO char literal
         : CHARACTER_CONSTANT
         ;
 
-booleanLiteral
+booleanLiteral // TODO bool literal
         : TRUE
         | FALSE
         ;

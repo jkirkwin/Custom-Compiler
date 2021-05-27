@@ -36,6 +36,7 @@ public class Compiler {
         }       
         builder.append(") {\n");
         
+        // Declarations
         var varDecls = f.body.declarations;
         for (VariableDeclaration v : varDecls) {
             var varType = v.typeNode.typeString;
@@ -46,6 +47,19 @@ public class Compiler {
                 .append(" ")
                 .append(varName)
                 .append(";\n");
+        }
+
+        // Statements
+        var stmts = f.body.statements;
+        for (Statement s : stmts) {
+            builder.append("\t");
+            if (s == null) {
+                builder.append("== null! ==");
+            }
+            else {
+                builder.append(s.getClass()); // TODO once we actually have statement subclasses, print some of their internals here?
+            }
+            builder.append("\n");
         }
         
 
