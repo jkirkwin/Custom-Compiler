@@ -17,12 +17,6 @@ grammar UnnamedLanguage;
                 reportError(e);
                 throw e;
         }
-
-
-        // TODO This is a hack because I can't seem to make lists work with the function+
-        //      regex in the program rule. This should definitely be removed and return values
-        //      used in the function rule instead.
-        List<Function> functions = new ArrayList<Function>();
 }
 
 @rulecatch {
@@ -33,20 +27,23 @@ grammar UnnamedLanguage;
 }
 
 // Starting production
-program returns [Program p] 
-        : function+
+program returns [Program programNode] 
+@init {
+    System.out.println("Creating list of functions");    
+    List<Function> functions = new ArrayList<Function>();
+}
+        : (f = function { functions.add(f); })+
         { 
-                p = new Program(functions);
+                
+                programNode = new Program(functions);
         } 
         EOF
 	;
 
-function // TODO Return a function and collect them into a list in the parent rule rather
-         //      than relying on the member.  
+function returns [Function functionNode] 
         : decl=functionDecl body=functionBody 
         { 
-            Function f = new Function(decl, body); 
-            functions.add(f);
+            functionNode = new Function(decl, body); 
         }
 	;
 
@@ -54,19 +51,36 @@ functionDecl returns [FunctionDecl declNode]
         : typeNode = compoundType 
           idNode = identifier 
           OPEN_PAREN 
-          formalParameters 
+          formalsList = formalParameters 
           CLOSE_PAREN 
-        { declNode = new FunctionDecl(typeNode, idNode); } // TODO Add missing params for constructor. TODO Update type param?
+        { declNode = new FunctionDecl(typeNode, idNode, formalsList); } // TODO Update type param?
 	;
 
-formalParameters
-        : compoundType identifier moreFormals*
+formalParameters returns [List<FormalParameter> formalNodes]
+@init {
+    System.out.println("Creating formals List<>.");
+    formalNodes = new ArrayList<FormalParameter>();            
+}
+        : firstParamNode = formalParameter 
+            { formalNodes.add(firstParamNode); System.out.println("Added first param to formals list"); }
+          moreResult = moreFormals* // TODO Add the results of this to the list. We have the same problem here as we did with the list of functions.
         | // Can be empty
         ;
 
-moreFormals
-        : COMMA compoundType identifier
+moreFormals returns [FormalParameter paramNode]
+        : COMMA node = formalParameter 
+            { 
+                paramNode = node; 
+            }
         ;
+
+formalParameter returns [FormalParameter formalParamNode]
+        : compoundTypeNode = compoundType
+          idNode = identifier
+            {
+                formalParamNode = new FormalParameter(compoundTypeNode, idNode);
+            }
+        ; 
 
 functionBody returns [FunctionBody b]
         : OPEN_BRACE varDecl* statement* CLOSE_BRACE 
