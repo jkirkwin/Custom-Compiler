@@ -37,11 +37,20 @@ public class Compiler {
 			Program program = parser.program();
 			System.out.println("Found " + program.functions.size() + " functions:");
             for (Function f : program.functions) {
+
                     var decl = f.declaration;
                     String type = decl.typeNode.typeString;
                     String id = decl.identifier.value;
+                
                     String position = "(" + decl.line + ", " + decl.offset + ")";
-                    System.out.println("\t " + position + " " + type + " " + id);
+                
+                    String formalsString= "(";
+                    for (FormalParameter formal : decl.formals) {
+                        formalsString += formal.typeNode.typeString + " " + formal.identifier.value + ", "; // Who cares about off by one? Not me.
+                    }
+                    formalsString += ")";
+                
+                    System.out.println("\t " + position + " " + type + " " + id + formalsString);
             }
         }
         catch (RecognitionException e )	{

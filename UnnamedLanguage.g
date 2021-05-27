@@ -58,12 +58,10 @@ functionDecl returns [FunctionDecl declNode]
 
 formalParameters returns [List<FormalParameter> formalNodes]
 @init {
-    System.out.println("Creating formals List<>.");
     formalNodes = new ArrayList<FormalParameter>();            
 }
-        : firstParamNode = formalParameter 
-            { formalNodes.add(firstParamNode); System.out.println("Added first param to formals list"); }
-          moreResult = moreFormals* // TODO Add the results of this to the list. We have the same problem here as we did with the list of functions.
+        : firstParamNode = formalParameter { formalNodes.add(firstParamNode); }
+          (paramNode = moreFormals { formalNodes.add(paramNode);  } ) * 
         | // Can be empty
         ;
 
@@ -96,13 +94,13 @@ varDecl
 compoundType returns [TypeNode typeNode]
         : node = type { typeNode = node; }
         | simpleType = type OPEN_BRACKET size = intLiteral CLOSE_BRACKET {
-            // TODO Should construct a typenode here for the full compound type
+            // TODO Should construct a typenode here for the array type
             return simpleType;
           } 
         ;
 
 statement 
-options {
+options { // TODO pretty sure this should be at the top of the file.
         backtrack=true; // Necessary to prevent recursion errors
 }
         : SEMICOLON

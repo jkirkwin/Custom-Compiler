@@ -5,8 +5,8 @@ package ast;
  */
 public class FormalParameter extends ASTNode {
 
-    private TypeNode typeNode;
-    private Identifier identifier;
+    public final TypeNode typeNode;
+    public final Identifier identifier;
 
     public FormalParameter(TypeNode typeNode, Identifier identifier) {
         super (typeNode);
