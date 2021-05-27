@@ -107,19 +107,19 @@ compoundType returns [TypeNode typeNode]
           } 
         ;
 
-statement returns [Statement stmtNode] // TODO Return a statment derivation.
+statement returns [Statement stmtNode]
 options { // TODO pretty sure this should be at the top of the file.
         backtrack=true; // Necessary to prevent recursion errors
 }
-        : SEMICOLON // TODO Return null in this case and check for it wherever we're using statment rule on lhs?
-        | expression SEMICOLON
-        | ifElseStatement
-        | whileStatement
-        | printStatement
-        | printlnStatement
+        : SEMICOLON // TODO Return null in this case and check for it wherever we're using statement rule on lhs?
+        | expression SEMICOLON // TODO 
+        | ifElseStatement // TODO
+        | whileStatement // TODO
+        | printNode = printStatement { stmtNode = printNode; }
+        | printlnStatement // TODO
         | returnStmtNode = returnStatement { stmtNode = returnStmtNode; }
-        | assignmentStatement
-        | arrayAssignmentStatement
+        | assignmentStatement // TODO
+        | arrayAssignmentStatement // TODO
         ;
 
 ifElseStatement // TODO Add return for if/else stmt
@@ -130,8 +130,12 @@ whileStatement // TODO Add return for while stmt
         : WHILE OPEN_PAREN expression CLOSE_PAREN block
         ;
 
-printStatement returns [Statement printStmtNode] // TODO Actually return something here.
-        : PRINT expNode = expression SEMICOLON { /* TODO */ }
+printStatement returns [PrintStatement printStmtNode]
+        : PRINT expNode = expression SEMICOLON 
+            {
+                int line = $PRINT.line, offset = $PRINT.pos; 
+                printStmtNode = new PrintStatement(line, offset, expNode); 
+            }
         ;
 
 printlnStatement // TODO Add return for prinln stmt
