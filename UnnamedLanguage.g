@@ -119,7 +119,7 @@ options { // TODO pretty sure this should be at the top of the file.
         | printlnNode = printlnStatement { stmtNode = printlnNode; }
         | returnStmtNode = returnStatement { stmtNode = returnStmtNode; }
         | assignStmtNode = assignmentStatement { stmtNode = assignStmtNode; }
-        | arrayAssignmentStatement // TODO
+        | arrayAssignStmtNode = arrayAssignmentStatement { stmtNode = arrayAssignStmtNode; } 
         ;
 
 ifElseStatement // TODO Add return for if/else stmt
@@ -168,8 +168,12 @@ assignmentStatement returns [AssignmentStatement assignStmtNode]
             }
         ;
 
-arrayAssignmentStatement // TODO add return for array assignment stmt
-        : arrayReference EQUAL_ASSIGNMENT expression SEMICOLON
+arrayAssignmentStatement returns [ArrayAssignmentStatement arrayAssignStmtNode]
+        : arrayIdNode = identifier OPEN_BRACKET indexExpNode = expression CLOSE_BRACKET 
+            EQUAL_ASSIGNMENT valueExpNode = expression SEMICOLON
+            {
+                arrayAssignStmtNode = new ArrayAssignmentStatement(arrayIdNode, indexExpNode, valueExpNode);
+            }
         ;
 
 block returns [Block blockNode] // TODO Actually create a block here
@@ -212,8 +216,11 @@ expressionList // TODO return list of expressions
         | // Can be empty
         ;
 
-arrayReference // TODO return expression for array ref
-        : identifier OPEN_BRACKET expression CLOSE_BRACKET
+arrayReference returns [Expression arrayRefNode]
+        : id = identifier OPEN_BRACKET indexExpNode = expression CLOSE_BRACKET
+            {
+                arrayRefNode = new ArrayReference(id, indexExpNode);
+            }
         ;
 
 exprMore
