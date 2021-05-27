@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import sys
 
 # Helper script to speed up generating new ASTNode classes
