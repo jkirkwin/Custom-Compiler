@@ -118,7 +118,7 @@ options { // TODO pretty sure this should be at the top of the file.
         | printNode = printStatement { stmtNode = printNode; }
         | printlnNode = printlnStatement { stmtNode = printlnNode; }
         | returnStmtNode = returnStatement { stmtNode = returnStmtNode; }
-        | assignmentStatement // TODO
+        | assignStmtNode = assignmentStatement { stmtNode = assignStmtNode; }
         | arrayAssignmentStatement // TODO
         ;
 
@@ -161,8 +161,11 @@ returnStatement returns [ReturnStatement returnStmtNode]
             }
         ;
 
-assignmentStatement // TODO add return for assignment stmt
-        : identifier EQUAL_ASSIGNMENT expression SEMICOLON
+assignmentStatement returns [AssignmentStatement assignStmtNode]
+        : idNode = identifier EQUAL_ASSIGNMENT expNode = expression SEMICOLON 
+            {
+                   assignStmtNode = new AssignmentStatement(idNode, expNode);
+            }
         ;
 
 arrayAssignmentStatement // TODO add return for array assignment stmt
