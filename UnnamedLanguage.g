@@ -80,15 +80,22 @@ formalParameter returns [FormalParameter formalParamNode]
             }
         ; 
 
-functionBody returns [FunctionBody b]
-        : OPEN_BRACE varDecl* statement* CLOSE_BRACE 
+functionBody returns [FunctionBody bodyNode]
+@init {
+    List<VariableDeclaration> varDecls = new ArrayList<VariableDeclaration>();
+}
+        :   OPEN_BRACE 
+            (declNode = varDecl {varDecls.add(declNode);} )* 
+            statement* CLOSE_BRACE 
         {
-            b = new FunctionBody(); 
-        } // TODO Add parameters for the function body
+            bodyNode = new FunctionBody(varDecls); 
+        } // TODO Add statements to the function body
 	;
 
-varDecl
-        : compoundType identifier SEMICOLON
+varDecl returns [VariableDeclaration varDeclNode]
+        : typeNode = compoundType idNode = identifier SEMICOLON {
+                varDeclNode = new VariableDeclaration(typeNode, idNode);
+            }
         ;
 
 compoundType returns [TypeNode typeNode]

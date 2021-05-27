@@ -7,7 +7,52 @@ import ast.*;
  * a parser based on the grammar for the unnamed language.
  */
 public class Compiler {
-	
+
+    // TODO Remove once we add the printing visitor
+    /**
+     * Simple debugging utility to print the contents of a function.
+     */
+    public static void printFunction(Function f) {
+        var decl = f.declaration;
+        String type = decl.typeNode.typeString;
+        String id = decl.identifier.value;
+        
+        StringBuilder builder = new StringBuilder();
+        builder.append(type)
+            .append(" ")
+            .append(id)
+            .append("(");
+
+        for (int i = 0; i < decl.formals.size(); ++i) {
+            var formal = decl.formals.get(i);
+            var formalType = formal.typeNode.typeString;
+            var formalName = formal.identifier.value;
+
+            builder.append(formalType).append(" ").append(formalName);
+            
+            if (i != decl.formals.size() - 1) {
+                builder.append(", ");
+            }
+        }       
+        builder.append(") {\n");
+        
+        var varDecls = f.body.declarations;
+        for (VariableDeclaration v : varDecls) {
+            var varType = v.typeNode.typeString;
+            var varName = v.id.value;
+            
+            builder.append("\t")
+                .append(varType)
+                .append(" ")
+                .append(varName)
+                .append(";\n");
+        }
+        
+
+        builder.append("}\n");
+        System.out.println(builder.toString());
+    }
+
 	public static void main (String[] args) throws IOException {
 		
 		if (args.length == 0 ) {
@@ -37,20 +82,7 @@ public class Compiler {
 			Program program = parser.program();
 			System.out.println("Found " + program.functions.size() + " functions:");
             for (Function f : program.functions) {
-
-                    var decl = f.declaration;
-                    String type = decl.typeNode.typeString;
-                    String id = decl.identifier.value;
-                
-                    String position = "(" + decl.line + ", " + decl.offset + ")";
-                
-                    String formalsString= "(";
-                    for (FormalParameter formal : decl.formals) {
-                        formalsString += formal.typeNode.typeString + " " + formal.identifier.value + ", "; // Who cares about off by one? Not me.
-                    }
-                    formalsString += ")";
-                
-                    System.out.println("\t " + position + " " + type + " " + id + formalsString);
+                printFunction(f);
             }
         }
         catch (RecognitionException e )	{
