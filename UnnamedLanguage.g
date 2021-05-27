@@ -116,7 +116,7 @@ options { // TODO pretty sure this should be at the top of the file.
         | ifElseStatement // TODO
         | whileStatement // TODO
         | printNode = printStatement { stmtNode = printNode; }
-        | printlnStatement // TODO
+        | printlnNode = printlnStatement { stmtNode = printlnNode; }
         | returnStmtNode = returnStatement { stmtNode = returnStmtNode; }
         | assignmentStatement // TODO
         | arrayAssignmentStatement // TODO
@@ -138,8 +138,12 @@ printStatement returns [PrintStatement printStmtNode]
             }
         ;
 
-printlnStatement // TODO Add return for prinln stmt
-        : PRINTLN expression SEMICOLON
+printlnStatement returns [PrintlnStatement printlnNode]
+        : PRINTLN expNode = expression SEMICOLON 
+            {
+                int line = $PRINTLN.line, offset = $PRINTLN.pos;
+                printlnNode = new PrintlnStatement(line, offset, expNode);
+            }
         ;
 
 returnStatement returns [ReturnStatement returnStmtNode]
