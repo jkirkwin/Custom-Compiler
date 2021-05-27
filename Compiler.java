@@ -7,6 +7,41 @@ import ast.*;
  * a parser based on the grammar for the unnamed language.
  */
 public class Compiler {
+    
+    public static String stmtToString(Statement s) {
+        // Disgusting, but works for debugging until we have a visitor pattern
+        if (s instanceof ReturnStatement) {
+            return returnStmtToString((ReturnStatement)s);
+        }
+        else if (s instanceof PrintStatement) {
+            PrintStatement p = (PrintStatement)s;
+            return "print " + p.expression.getClass();
+        }
+        else if (s instanceof PrintlnStatement) {
+            PrintlnStatement p = (PrintlnStatement)s;
+            return "print " + p.expression.getClass();
+        }
+        else if (s instanceof AssignmentStatement) {
+            AssignmentStatement a = (AssignmentStatement)s;
+            return a.id.value + " = " + a.value.getClass();
+        }
+        else if (s instanceof ArrayAssignmentStatement) {
+            ArrayAssignmentStatement a = (ArrayAssignmentStatement)s;
+            return a.arrayId.value + "[" + a.indexExpression.getClass() + "] = " + a.valueExpression.getClass();
+        }
+        else {
+            return s.getClass().toString();    
+        }
+    }
+
+    public static String returnStmtToString(ReturnStatement s) {
+        if (s.returnExpression.isPresent()) {
+            return "return " + s.returnExpression.get().getClass().toString() + ";";
+        }
+        else {
+            return "return;";
+        }
+    }
 
     // TODO Remove once we add the printing visitor
     /**
@@ -57,7 +92,7 @@ public class Compiler {
                 builder.append("== null! ==");
             }
             else {
-                builder.append(s.getClass()); // TODO once we actually have statement subclasses, print some of their internals here?
+                builder.append(stmtToString(s));
             }
             builder.append("\n");
         }
