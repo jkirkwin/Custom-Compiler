@@ -29,7 +29,6 @@ grammar UnnamedLanguage;
 // Starting production
 program returns [Program programNode] 
 @init {
-    System.out.println("Creating list of functions");    
     List<Function> functions = new ArrayList<Function>();
 }
         : (f = function { functions.add(f); })+
@@ -112,13 +111,13 @@ statement returns [Statement stmtNode] // TODO Return a statment derivation.
 options { // TODO pretty sure this should be at the top of the file.
         backtrack=true; // Necessary to prevent recursion errors
 }
-        : SEMICOLON
+        : SEMICOLON // TODO Return null in this case and check for it wherever we're using statment rule on lhs?
         | expression SEMICOLON
         | ifElseStatement
         | whileStatement
         | printStatement
         | printlnStatement
-        | returnStatement
+        | returnStmtNode = returnStatement { stmtNode = returnStmtNode; }
         | assignmentStatement
         | arrayAssignmentStatement
         ;
@@ -131,16 +130,27 @@ whileStatement // TODO Add return for while stmt
         : WHILE OPEN_PAREN expression CLOSE_PAREN block
         ;
 
-printStatement // TODO Add return for print stmt
-        : PRINT expression SEMICOLON
+printStatement returns [Statement printStmtNode] // TODO Actually return something here.
+        : PRINT expNode = expression SEMICOLON { /* TODO */ }
         ;
 
 printlnStatement // TODO Add return for prinln stmt
         : PRINTLN expression SEMICOLON
         ;
 
-returnStatement // TODO Add return for return stmt
-        : RETURN expression? SEMICOLON
+returnStatement returns [ReturnStatement returnStmtNode]
+        : RETURN expNode = expression? SEMICOLON 
+            { 
+                int line = $RETURN.line, offset = $RETURN.pos;
+                if (expNode == null) {
+                    System.out.println("Return statement with no expression found");
+                    returnStmtNode = new ReturnStatement(line, offset);
+                }
+                else {
+                    System.out.println("Return statement with expression found");
+                    returnStmtNode = new ReturnStatement(line, offset, expNode);
+                }
+            }
         ;
 
 assignmentStatement // TODO add return for assignment stmt
@@ -158,8 +168,8 @@ block returns [Block blockNode] // TODO Actually create a block here
 // We nest expressions which use binary operators in increasing order
 // of precedence to enforce precedence rules and prevent left-recursion
 // issues.
-expression returns [Expression exprNode]
-        : lessThanExpression (EQUAL_COMPARISON lessThanExpression)*
+expression returns [Expression exprNode] // TODO Actually return something here. Careful to only create a new object when you need to.
+        : lessThanExpression (EQUAL_COMPARISON lessThanExpression)* { exprNode = new Expression(); } // TODO remove this dummy value.
         ;
 
 lessThanExpression // TODO Return expression for lessthan expr
