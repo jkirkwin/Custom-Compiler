@@ -119,7 +119,7 @@ options { // TODO pretty sure this should be at the top of the file.
 }
         : SEMICOLON // TODO Return null in this case and check for it wherever we're using statement rule on lhs?
         | expression SEMICOLON // TODO 
-        | ifElseStatement // TODO
+        | ifStmtNode = ifElseStatement { stmtNode = ifStmtNode; }
         | whileNode = whileStatement { stmtNode = whileNode; }
         | printNode = printStatement { stmtNode = printNode; }
         | printlnNode = printlnStatement { stmtNode = printlnNode; }
@@ -128,8 +128,17 @@ options { // TODO pretty sure this should be at the top of the file.
         | arrayAssignStmtNode = arrayAssignmentStatement { stmtNode = arrayAssignStmtNode; } 
         ;
 
-ifElseStatement // TODO Add return for if/else stmt
-        : IF OPEN_PAREN expression CLOSE_PAREN block (ELSE block)?
+ifElseStatement returns [IfStatement ifStmtNode]
+        : IF OPEN_PAREN expNode = expression CLOSE_PAREN ifBlockNode = block (ELSE elseBlockNode = block)?
+            {
+                int line = $IF.line, offset = $IF.pos;
+                if (elseBlockNode != null) {
+                    ifStmtNode = new IfStatement(line, offset, expNode, ifBlockNode, elseBlockNode);
+                }
+                else {
+                    ifStmtNode = new IfStatement(line, offset, expNode, ifBlockNode);
+                }
+            }
         ;
 
 whileStatement returns [WhileStatement whileNode]

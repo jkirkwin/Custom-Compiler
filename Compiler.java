@@ -33,8 +33,14 @@ public class Compiler {
             WhileStatement w = (WhileStatement)s;
             return "while (" + w.condition.getClass() + ") { " + w.block.getClass() + " }";
         }
-
-
+        else if (s instanceof IfStatement) {
+            IfStatement i = (IfStatement)s;
+            String str = "if (" + i.condition.getClass() + ") { " + i.ifBlock.getClass() + " }";
+            if (i.elseBlock.isPresent()) {
+                str += " else { " + i.elseBlock.get().getClass()  + " } ";
+            }
+            return str;
+        }
         else {
             return s.getClass().toString();    
         }
