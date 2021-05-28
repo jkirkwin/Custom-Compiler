@@ -120,7 +120,7 @@ options { // TODO pretty sure this should be at the top of the file.
         : SEMICOLON // TODO Return null in this case and check for it wherever we're using statement rule on lhs?
         | expression SEMICOLON // TODO 
         | ifElseStatement // TODO
-        | whileStatement // TODO
+        | whileNode = whileStatement { stmtNode = whileNode; }
         | printNode = printStatement { stmtNode = printNode; }
         | printlnNode = printlnStatement { stmtNode = printlnNode; }
         | returnStmtNode = returnStatement { stmtNode = returnStmtNode; }
@@ -132,8 +132,12 @@ ifElseStatement // TODO Add return for if/else stmt
         : IF OPEN_PAREN expression CLOSE_PAREN block (ELSE block)?
         ;
 
-whileStatement // TODO Add return for while stmt
-        : WHILE OPEN_PAREN expression CLOSE_PAREN block
+whileStatement returns [WhileStatement whileNode]
+        : WHILE OPEN_PAREN expNode = expression CLOSE_PAREN blockNode = block 
+            {
+                int line = $WHILE.line, offset = $WHILE.pos;
+                whileNode = new WhileStatement(line, offset, expNode, blockNode);
+            }
         ;
 
 printStatement returns [PrintStatement printStmtNode]
@@ -180,8 +184,21 @@ arrayAssignmentStatement returns [ArrayAssignmentStatement arrayAssignStmtNode]
             }
         ;
 
-block returns [Block blockNode] // TODO Actually create a block here
-        : OPEN_BRACE statement* CLOSE_BRACE
+block returns [Block blockNode]
+@init {
+    List<Statement> statements = new ArrayList<Statement>();
+}
+        : OPEN_BRACE (stmtNode = statement 
+            {
+                if (stmtNode != null) {
+                    statements.add(stmtNode);
+                }         
+            }
+          ) * CLOSE_BRACE
+            {
+                int line = $OPEN_BRACE.line, offset = $OPEN_BRACE.pos;
+                blockNode = new Block(line, offset, statements);
+            }
         ;
 
 // We nest expressions which use binary operators in increasing order

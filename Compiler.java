@@ -29,6 +29,12 @@ public class Compiler {
             ArrayAssignmentStatement a = (ArrayAssignmentStatement)s;
             return a.arrayId.value + "[" + a.indexExpression.getClass() + "] = " + a.valueExpression.getClass();
         }
+        else if (s instanceof WhileStatement) {
+            WhileStatement w = (WhileStatement)s;
+            return "while (" + w.condition.getClass() + ") { " + w.block.getClass() + " }";
+        }
+
+
         else {
             return s.getClass().toString();    
         }
