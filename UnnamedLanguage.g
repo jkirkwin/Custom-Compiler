@@ -86,7 +86,13 @@ functionBody returns [FunctionBody bodyNode]
 }
         :   OPEN_BRACE 
             (declNode = varDecl {varDecls.add(declNode);} )* 
-            (stmtNode = statement {stmts.add(stmtNode);} )* 
+            (stmtNode = statement   
+                {
+                    if (stmtNode != null) {
+                        stmts.add(stmtNode);
+                    }
+                } 
+            )* 
             CLOSE_BRACE 
         {
             bodyNode = new FunctionBody(varDecls, stmts); 
@@ -151,11 +157,9 @@ returnStatement returns [ReturnStatement returnStmtNode]
             { 
                 int line = $RETURN.line, offset = $RETURN.pos;
                 if (expNode == null) {
-                    System.out.println("Return statement with no expression found");
                     returnStmtNode = new ReturnStatement(line, offset);
                 }
                 else {
-                    System.out.println("Return statement with expression found");
                     returnStmtNode = new ReturnStatement(line, offset, expNode);
                 }
             }
