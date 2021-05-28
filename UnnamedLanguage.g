@@ -114,11 +114,11 @@ compoundType returns [TypeNode typeNode]
         ;
 
 statement returns [Statement stmtNode]
-options { // TODO pretty sure this should be at the top of the file.
+options {
         backtrack=true; // Necessary to prevent recursion errors
 }
-        : SEMICOLON // TODO Return null in this case and check for it wherever we're using statement rule on lhs?
-        | expression SEMICOLON // TODO 
+        : SEMICOLON // TODO ensure we've checked for null wherever we're using statement rule on lhs
+        | expNode = expression SEMICOLON { stmtNode = new ExpressionStatement(expNode); }
         | ifStmtNode = ifElseStatement { stmtNode = ifStmtNode; }
         | whileNode = whileStatement { stmtNode = whileNode; }
         | printNode = printStatement { stmtNode = printNode; }
@@ -253,7 +253,7 @@ arrayReference returns [Expression arrayRefNode]
             }
         ;
 
-exprMore
+exprMore // TODO return something
         : COMMA expression
         ;
 
