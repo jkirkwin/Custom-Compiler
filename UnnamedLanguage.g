@@ -214,27 +214,27 @@ block returns [Block blockNode]
 // of precedence to enforce precedence rules and prevent left-recursion
 // issues.
 expression returns [Expression exprNode] // TODO Actually return something here. Careful to only create a new object when you need to.
-        : lessThanExpression (EQUAL_COMPARISON lessThanExpression)* { exprNode = new Expression(); } // TODO remove this dummy value.
+        : lhs = lessThanExpression (EQUAL_COMPARISON lessThanExpression)* { exprNode = new Expression(); } // TODO remove this dummy value.
         ;
 
-lessThanExpression // TODO Return expression for lessthan expr
+lessThanExpression returns [Expression exprNode] // TODO Return expression for lessthan expr
         : plusMinusExpression (LESS_THAN plusMinusExpression)*
         ;
 
-plusMinusExpression // TODO Return expression for +/- expr
+plusMinusExpression returns [Expression exprNode] // TODO Return expression for +/- expr
         : multExpression ((PLUS | MINUS) multExpression)*
         ;
 
-multExpression // TODO Return expression for mult expr
+multExpression returns [Expression exprNode] // TODO Return expression for mult expr
         : expressionAtom (MULTIPLY expressionAtom)*
         ;
 
-expressionAtom // TODO Return expression for atom expr?
-        : arrayReference
-        | functionCall
-        | identifier
-        | literal
-        | OPEN_PAREN expression CLOSE_PAREN
+expressionAtom returns [Expression exprNode] // TODO Return expression for atom expr?
+        : arrayRefNode = arrayReference {exprNode = arrayRefNode;}
+        | functionCall // TODO return an expression here
+        | identifier // TODO return an expression
+        | literal // TODO return an expression here
+        | OPEN_PAREN e = expression CLOSE_PAREN {exprNode = e;}
         ;
 
 functionCall // TODO Return expression for function call expr
@@ -265,27 +265,59 @@ literal // TODO Should return expression for literal
         | booleanLiteral
         ;
 
-stringLiteral // TODO string literal
-        : STRING_CONSTANT
+stringLiteral returns [StringLiteral stringLiteralNode] 
+        : STRING_CONSTANT { 
+                int line=$STRING_CONSTANT.line, offset=$STRING_CONSTANT.pos;                
+
+                // Remove the outer quotes from the string for storage
+                String quotedText = $STRING_CONSTANT.text;
+                assert (quotedText.length() >= 2);
+                String rawText = quotedText.substring(1, quotedText.length() - 1);
+                 
+                stringLiteralNode = new StringLiteral(line, offset, rawText);
+            }
         ;
 
 
-intLiteral // TODO int literal
-        : INTEGER_CONSTANT
+intLiteral returns [IntLiteral intLiteralNode]
+        : INTEGER_CONSTANT {
+                int line=$INTEGER_CONSTANT.line, offset=$INTEGER_CONSTANT.pos;                
+
+                String valueText = $INTEGER_CONSTANT.text;
+                int value = Integer.parseInt(valueText);
+                
+                intLiteralNode = new IntLiteral(line, offset, value);
+            }
         ;
 
-floatLiteral // TODO float literal
-        : FLOAT_CONSTANT
+floatLiteral returns [FloatLiteral floatLiteralNode]
+        : FLOAT_CONSTANT {
+                int line=$FLOAT_CONSTANT.line, offset=$FLOAT_CONSTANT.pos;                
+
+                String valueText = $FLOAT_CONSTANT.text;
+                float value = Float.parseFloat(valueText);
+                
+                floatLiteralNode = new FloatLiteral(line, offset, value);
+            }
         ;
 
 
-charLiteral // TODO char literal
-        : CHARACTER_CONSTANT
+charLiteral returns [CharacterLiteral charLiteralNode]
+        : CHARACTER_CONSTANT {
+
+                int line=$CHARACTER_CONSTANT.line, offset=$CHARACTER_CONSTANT.pos;        
+                
+                String valueText = $CHARACTER_CONSTANT.text;
+                assert valueText.length() == 3;
+                char value = valueText.charAt(1);
+                
+                charLiteralNode = new CharacterLiteral(line, offset, value);
+         }
         ;
 
-booleanLiteral // TODO bool literal
-        : TRUE
-        | FALSE
+booleanLiteral returns [BooleanLiteral boolLiteralNode]
+        : TRUE { boolLiteralNode = new BooleanLiteral($TRUE.line, $TRUE.pos, true); }
+        | FALSE { boolLiteralNode = new BooleanLiteral($FALSE.line, $FALSE.pos, false); }
         ;
 
 identifier returns [Identifier idNode]
