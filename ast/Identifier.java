@@ -3,7 +3,7 @@ package ast;
 /**
  * Represents a use or declaration of an identifier.
  */
-public class Identifier extends ASTNode {
+public class Identifier extends Expression {
 
     public final String value;
 

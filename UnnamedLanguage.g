@@ -232,8 +232,8 @@ multExpression returns [Expression exprNode] // TODO Return expression for mult 
 expressionAtom returns [Expression exprNode] // TODO Return expression for atom expr?
         : arrayRefNode = arrayReference {exprNode = arrayRefNode;}
         | functionCall // TODO return an expression here
-        | identifier // TODO return an expression
-        | literal // TODO return an expression here
+        | idNode = identifier {exprNode = idNode;}
+        | litExprNode = literal {exprNode = litExprNode;}
         | OPEN_PAREN e = expression CLOSE_PAREN {exprNode = e;}
         ;
 
@@ -257,12 +257,12 @@ exprMore // TODO return something
         : COMMA expression
         ;
 
-literal // TODO Should return expression for literal
-        : stringLiteral
-        | intLiteral
-        | floatLiteral
-        | charLiteral
-        | booleanLiteral
+literal returns [Expression exprNode]
+        : s = stringLiteral {exprNode = s;}
+        | i = intLiteral {exprNode = i;}
+        | f = floatLiteral {exprNode = f;}
+        | c = charLiteral {exprNode = c;}
+        | b = booleanLiteral {exprNode = b;}
         ;
 
 stringLiteral returns [StringLiteral stringLiteralNode] 
