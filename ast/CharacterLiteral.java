@@ -3,7 +3,7 @@ package ast;
 /**
  * Represents a literal character value enclosed in single quotes.
  */
-public class CharacterLiteral extends Expression { // TODO Will subsequent steps be harder if we represent all these literals with a single generic Literal<T> class?
+public class CharacterLiteral extends Expression {
 
     public final char value;
 

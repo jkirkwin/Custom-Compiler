@@ -229,20 +229,28 @@ multExpression returns [Expression exprNode] // TODO Return expression for mult 
         : expressionAtom (MULTIPLY expressionAtom)*
         ;
 
-expressionAtom returns [Expression exprNode] // TODO Return expression for atom expr?
+expressionAtom returns [Expression exprNode]
         : arrayRefNode = arrayReference {exprNode = arrayRefNode;}
-        | functionCall // TODO return an expression here
+        | funcCallNode = functionCall {exprNode = funcCallNode;}
         | idNode = identifier {exprNode = idNode;}
         | litExprNode = literal {exprNode = litExprNode;}
         | OPEN_PAREN e = expression CLOSE_PAREN {exprNode = e;}
         ;
 
-functionCall // TODO Return expression for function call expr
-        : identifier OPEN_PAREN expressionList CLOSE_PAREN
+functionCall returns [FunctionCall funcCallNode]
+        : idNode = identifier OPEN_PAREN exprList = expressionList CLOSE_PAREN {
+                funcCallNode = new FunctionCall(idNode, exprList);
+            }
         ;
 
-expressionList // TODO return list of expressions
-        : expression exprMore*
+expressionList returns [List<Expression> expressions]
+@init {
+    expressions = new ArrayList<Expression>();
+}
+        : firstExprNode = expression {expressions.add(firstExprNode); } 
+          (
+            subsequentExprNode = exprMore {expressions.add(subsequentExprNode);} 
+          )*
         | // Can be empty
         ;
 
@@ -253,8 +261,8 @@ arrayReference returns [Expression arrayRefNode]
             }
         ;
 
-exprMore // TODO return something
-        : COMMA expression
+exprMore returns [Expression exprNode]
+        : COMMA e = expression {exprNode = e;}
         ;
 
 literal returns [Expression exprNode]
