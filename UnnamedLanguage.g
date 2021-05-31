@@ -117,7 +117,7 @@ statement returns [Statement stmtNode]
 options {
         backtrack=true; // Necessary to prevent recursion errors
 }
-        : SEMICOLON // TODO ensure we've checked for null wherever we're using statement rule on lhs
+        : SEMICOLON
         | expNode = expression SEMICOLON { stmtNode = new ExpressionStatement(expNode); }
         | ifStmtNode = ifElseStatement { stmtNode = ifStmtNode; }
         | whileNode = whileStatement { stmtNode = whileNode; }
@@ -278,7 +278,7 @@ expressionAtom returns [Expression exprNode]
         | funcCallNode = functionCall {exprNode = funcCallNode;}
         | idNode = identifier {exprNode = idNode;}
         | litExprNode = literal {exprNode = litExprNode;}
-        | OPEN_PAREN e = expression CLOSE_PAREN {exprNode = e;} // TODO Jason has this as a separate class. Why? For printing?
+        | OPEN_PAREN e = expression CLOSE_PAREN {exprNode = new ParenExpression($OPEN_PAREN.line, $OPEN_PAREN.pos, e);} 
         ;
 
 functionCall returns [FunctionCall funcCallNode]
