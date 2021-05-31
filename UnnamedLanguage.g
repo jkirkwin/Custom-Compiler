@@ -213,20 +213,64 @@ block returns [Block blockNode]
 // We nest expressions which use binary operators in increasing order
 // of precedence to enforce precedence rules and prevent left-recursion
 // issues.
-expression returns [Expression exprNode] // TODO Actually return something here. Careful to only create a new object when you need to.
-        : lhs = lessThanExpression (EQUAL_COMPARISON lessThanExpression)* { exprNode = new Expression(); } // TODO remove this dummy value.
+expression returns [Expression exprNode]
+        : lhs = lessThanExpression {exprNode = lhs;}  
+          (
+            eq = EQUAL_COMPARISON nextOperand = lessThanExpression { 
+                exprNode = new EqualityExpression($eq.line, $eq.pos, exprNode, nextOperand);
+            }
+          )*
         ;
 
-lessThanExpression returns [Expression exprNode] // TODO Return expression for lessthan expr
-        : plusMinusExpression (LESS_THAN plusMinusExpression)*
+lessThanExpression returns [Expression exprNode] 
+        : left = plusMinusExpression { exprNode = left; } 
+          (
+            lt = LESS_THAN nextOperand = plusMinusExpression {
+                exprNode = new LessThanExpression($lt.line, $lt.pos, exprNode, nextOperand);
+            }
+          )*
         ;
 
-plusMinusExpression returns [Expression exprNode] // TODO Return expression for +/- expr
-        : multExpression ((PLUS | MINUS) multExpression)*
+plusMinusExpression returns [Expression exprNode]
+        : left = multExpression { exprNode = left; }
+            ( 
+                (plusToken = PLUS | minusToken = MINUS )
+                
+                nextOperand = multExpression { 
+                    // Only one of the token variables should have a value.
+                    assert (plusToken == null) != (minusToken == null);
+                    
+                    // Determine the position of the operator and create a new node for 
+                    // the most recently parsed operator.
+                    int line, offset;
+                    if (plusToken != null) {
+                        line = $plusToken.line;
+                        offset = $plusToken.pos;
+                        exprNode = new AddExpression(line, offset, exprNode, nextOperand);
+                    }
+                    else {
+                        line = $minusToken.line;
+                        offset = $minusToken.pos;
+                        exprNode = new SubtractExpression(line, offset, exprNode, nextOperand);
+                    }   
+                } 
+            )*
         ;
 
-multExpression returns [Expression exprNode] // TODO Return expression for mult expr
-        : expressionAtom (MULTIPLY expressionAtom)*
+multExpression returns [Expression exprNode]
+        : left = expressionAtom { 
+                // If there is no operator, just pass the node up to the next level.
+                exprNode = left; 
+          }
+          (
+                MULTIPLY nextOperand = expressionAtom {
+                        // Each time we find an operator, make a new binary node with the 
+                        // last one as the left child.
+                        int line = $MULTIPLY.line;
+                        int offset =  $MULTIPLY.pos; 
+                        exprNode = new MultiplyExpression(line, offset, exprNode, nextOperand);
+                }
+          )*
         ;
 
 expressionAtom returns [Expression exprNode]
@@ -234,7 +278,7 @@ expressionAtom returns [Expression exprNode]
         | funcCallNode = functionCall {exprNode = funcCallNode;}
         | idNode = identifier {exprNode = idNode;}
         | litExprNode = literal {exprNode = litExprNode;}
-        | OPEN_PAREN e = expression CLOSE_PAREN {exprNode = e;}
+        | OPEN_PAREN e = expression CLOSE_PAREN {exprNode = e;} // TODO Jason has this as a separate class. Why? For printing?
         ;
 
 functionCall returns [FunctionCall funcCallNode]
