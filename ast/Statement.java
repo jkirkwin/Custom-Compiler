@@ -6,8 +6,6 @@ package ast;
  * so that collections of statements can be used in other ASTNodes.
  */
 public abstract class Statement extends ASTNode {
-    // TODO Do we actually need anything here?
-
     
     /**
      * Forwards to the parent constructor with the same signature.

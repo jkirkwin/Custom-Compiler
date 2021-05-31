@@ -13,7 +13,7 @@ public class FunctionBody extends ASTNode {
     public final List<VariableDeclaration> declarations;
     public final List<Statement> statements;
 
-    public FunctionBody(List<VariableDeclaration> declarations, List<Statement> statements) { // TODO add a list of statements
+    public FunctionBody(List<VariableDeclaration> declarations, List<Statement> statements) {
         this.declarations = declarations;
         this.statements = statements;
     }

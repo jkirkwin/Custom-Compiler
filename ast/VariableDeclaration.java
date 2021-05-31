@@ -1,7 +1,9 @@
 package ast;
 
 /**
- * TODO Add a docstring
+ * Represents the declaration of a variable. This includes
+ * the type and name of that variable. Initial values provided
+ * at declaration are not supported.
  */
 public class VariableDeclaration extends ASTNode {
 
