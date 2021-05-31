@@ -1,6 +1,8 @@
 package ast;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * The declaration of a function includes its return type, name, and 
@@ -17,7 +19,7 @@ public class FunctionDecl extends ASTNode {
 
         this.typeNode = typeNode;
         this.identifier = identifier;
-        this.formals = formals;
+        this.formals = Collections.unmodifiableList(new ArrayList<FormalParameter>(formals));
     }
 
 }

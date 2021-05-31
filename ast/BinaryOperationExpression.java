@@ -1,8 +1,5 @@
 package ast;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * An abstract expression class which represents an unspecified left-associative 
  * binary operation and two sub-expressions on which to operate.

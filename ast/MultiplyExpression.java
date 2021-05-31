@@ -1,8 +1,5 @@
 package ast;
 
-import java.util.List;
-import java.util.ArrayList;
-
 /**
  * A binary multiplication expression
  */

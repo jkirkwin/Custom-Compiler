@@ -95,7 +95,9 @@ functionBody returns [FunctionBody bodyNode]
             )* 
             CLOSE_BRACE 
         {
-            bodyNode = new FunctionBody(varDecls, stmts); 
+            int line = $OPEN_BRACE.line;
+            int offset = $OPEN_BRACE.pos;
+            bodyNode = new FunctionBody(line, offset, varDecls, stmts); 
         } 
 	;
 
