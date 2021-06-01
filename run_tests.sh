@@ -29,6 +29,8 @@ VALID_UL_FILES=$(find $VALID_DIR -type f -name "*.ul")
 INVALID_DIR="${TEST_CASE_FOLDER}/invalid"
 INVALID_UL_FILES=$(find $INVALID_DIR -type f -name "*.ul")
 
+JAVA_COMMAND="java -ea Compiler"
+
 # Counters to be updated on each test
 FAILED=0
 PASSED=0
@@ -40,9 +42,9 @@ function run_test() {
 
     # Run the compiler
     if [ -z ${VERBOSE+x} ]; then
-        java Compiler $file 2>/dev/null
+         $JAVA_COMMAND $file 2>/dev/null
     else 
-        java Compiler $file
+        $JAVA_COMMAND $file
     fi
 
     # Update the running counts and report the result
