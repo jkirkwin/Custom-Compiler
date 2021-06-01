@@ -15,7 +15,7 @@ public class FunctionDecl extends ASTNode {
     public final List<FormalParameter> formals;
 
     public FunctionDecl(TypeNode typeNode, Identifier identifier, List<FormalParameter> formals) {
-        super(typeNode); // Use the line and offset values of the type node
+        super(typeNode);
 
         this.typeNode = typeNode;
         this.identifier = identifier;

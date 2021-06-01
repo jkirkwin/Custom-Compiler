@@ -11,7 +11,7 @@ public class VariableDeclaration extends ASTNode {
     public final Identifier id;
 
     public VariableDeclaration(TypeNode typeNode, Identifier id) {
-        super(typeNode); // Use same line/offset as the type
+        super(typeNode);
 
         this.typeNode = typeNode;
         this.id = id;

@@ -3,6 +3,7 @@ grammar UnnamedLanguage;
 @header 
 {
         import ast.*;
+        import type.*;
 }
 
 @members
@@ -52,7 +53,7 @@ functionDecl returns [FunctionDecl declNode]
           OPEN_PAREN 
           formalsList = formalParameters 
           CLOSE_PAREN 
-        { declNode = new FunctionDecl(typeNode, idNode, formalsList); } // TODO Update type param?
+        { declNode = new FunctionDecl(typeNode, idNode, formalsList); }
 	;
 
 formalParameters returns [List<FormalParameter> formalNodes]
@@ -108,10 +109,11 @@ varDecl returns [VariableDeclaration varDeclNode]
         ;
 
 compoundType returns [TypeNode typeNode]
-        : node = type { typeNode = node; }
-        | simpleType = type OPEN_BRACKET size = intLiteral CLOSE_BRACKET {
-            // TODO Should construct a typenode here for the array type
-            return simpleType;
+        : simpleNode = type { typeNode = simpleNode; }
+        | simpleNode = type OPEN_BRACKET size = intLiteral CLOSE_BRACKET {
+            // Pull out the simple type from the type and make an array type instead. 
+            ArrayType arrayType = new ArrayType(size.value, simpleNode.getSimpleType());    
+            typeNode = new ArrayTypeNode(simpleNode.line, simpleNode.offset, arrayType);
           } 
         ;
 
@@ -378,12 +380,35 @@ identifier returns [Identifier idNode]
         : ID { idNode = new Identifier($ID.text, $ID.line, $ID.pos); }
 	;
 
-type returns [TypeNode t]
+type returns [SimpleTypeNode t]
         : TYPE 
         {
-            // TODO Create a TypeNode instance with the proper Type parameter instead of the string 
-            String typeString = $TYPE.text;
-            t = new TypeNode(typeString, $TYPE.line, $TYPE.pos);
+            SimpleType simpleType;
+            switch($TYPE.text) {
+
+                case "void":
+                    simpleType = VoidType.INSTANCE;
+                    break;
+                case "boolean":
+                    simpleType = BooleanType.INSTANCE;
+                    break;
+                case "int":
+                    simpleType = IntegerType.INSTANCE;
+                    break;
+                case "float":
+                    simpleType = FloatType.INSTANCE;
+                    break;
+                case "char":
+                    simpleType = CharacterType.INSTANCE;
+                    break;
+                case "string":
+                    simpleType = StringType.INSTANCE;
+                    break;
+                default:
+                    throw new IllegalStateException("Cannot find corresponding type for '" + $TYPE.text + "'");
+            }
+           
+            t = new SimpleTypeNode($TYPE.line, $TYPE.pos, simpleType);
         }
 	;
 

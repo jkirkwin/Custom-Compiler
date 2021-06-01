@@ -61,7 +61,7 @@ public class Compiler {
      */
     public static void printFunction(Function f) {
         var decl = f.declaration;
-        String type = decl.typeNode.typeString;
+        String type = decl.typeNode.type.getClass().toString();
         String id = decl.identifier.value;
         
         StringBuilder builder = new StringBuilder();
@@ -72,10 +72,10 @@ public class Compiler {
 
         for (int i = 0; i < decl.formals.size(); ++i) {
             var formal = decl.formals.get(i);
-            var formalType = formal.typeNode.typeString;
+            var formalType = formal.typeNode.type;
             var formalName = formal.identifier.value;
 
-            builder.append(formalType).append(" ").append(formalName);
+            builder.append(formalType.getClass()).append(" ").append(formalName);
             
             if (i != decl.formals.size() - 1) {
                 builder.append(", ");
@@ -86,7 +86,7 @@ public class Compiler {
         builder.append("\t// Declarations:\n");
         var varDecls = f.body.declarations;
         for (VariableDeclaration v : varDecls) {
-            var varType = v.typeNode.typeString;
+            var varType = v.typeNode.type.getClass();
             var varName = v.id.value;
             
             builder.append("\t")
