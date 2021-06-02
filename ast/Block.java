@@ -23,4 +23,7 @@ public class Block extends ASTNode {
         this.statements = Collections.unmodifiableList(listCopy);
     }
 
+    public <T> T accept(ASTVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 }

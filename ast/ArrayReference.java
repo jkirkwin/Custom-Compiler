@@ -17,4 +17,8 @@ public class ArrayReference extends Expression {
         this.indexExpression = indexExpression;
     }
 
+    public <T> T accept(ASTVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
 }

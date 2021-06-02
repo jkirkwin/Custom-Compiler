@@ -1,4 +1,4 @@
-import ast.*;
+package ast;
 
 /**
  * Represents a visitor which traverses the nodes of the
@@ -16,7 +16,7 @@ import ast.*;
 
 	public T visit(AssignmentStatement node);
 
-//	public T visit(ASTNode node);
+	public T visit(ASTNode node); // Probably should never be called
 
 	public T visit(BinaryOperationExpression node);
 
@@ -28,7 +28,7 @@ import ast.*;
 
 	public T visit(EqualityExpression node);
 
-//	public T visit(Expression node);
+	public T visit(Expression node);
 
 	public T visit(ExpressionStatement node);
 
@@ -66,13 +66,13 @@ import ast.*;
 
 	public T visit(SimpleTypeNode node);
 
-//	public T visit(Statement node);
+	public T visit(Statement node);
 
 	public T visit(StringLiteral node);
 
 	public T visit(SubtractExpression node);
 
-//	public T visit(TypeNode node);
+	public T visit(TypeNode node);
 
 	public T visit(VariableDeclaration node);
 

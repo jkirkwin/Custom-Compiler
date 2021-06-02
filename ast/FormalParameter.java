@@ -15,4 +15,7 @@ public class FormalParameter extends ASTNode {
         this.identifier = identifier;
     }
 
+    public <T> T accept(ASTVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 }

@@ -15,4 +15,7 @@ public class ParenExpression extends Expression {
         this.expression = expression;
     }
 
+    public <T> T accept(ASTVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 }

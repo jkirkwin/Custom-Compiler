@@ -17,4 +17,8 @@ public class VariableDeclaration extends ASTNode {
         this.id = id;
     }
 
+    public <T> T accept(ASTVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
 }

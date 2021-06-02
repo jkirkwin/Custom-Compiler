@@ -16,4 +16,8 @@ public class WhileStatement extends Statement {
         this.block = block;
     }
 
+    public <T> T accept(ASTVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
 }

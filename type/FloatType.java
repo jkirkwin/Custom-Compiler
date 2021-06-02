@@ -7,5 +7,8 @@ public class FloatType extends SimpleType {
     private FloatType() {
     }
 
+    public String toShortString() {
+        return "float";
+    }
 
 }

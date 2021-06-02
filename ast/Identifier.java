@@ -16,4 +16,7 @@ public class Identifier extends Expression {
         this.value = value;
     }
 
+    public <T> T accept(ASTVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 }

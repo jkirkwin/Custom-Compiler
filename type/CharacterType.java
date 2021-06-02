@@ -7,6 +7,8 @@ public class CharacterType extends SimpleType {
     private CharacterType() {
     }
 
-
+    public String toShortString() {
+        return "char";
+    }
 
 }

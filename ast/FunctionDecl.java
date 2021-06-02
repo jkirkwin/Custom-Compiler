@@ -21,5 +21,9 @@ public class FunctionDecl extends ASTNode {
         this.identifier = identifier;
         this.formals = Collections.unmodifiableList(new ArrayList<FormalParameter>(formals));
     }
+ 
+    public <T> T accept(ASTVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 
 }

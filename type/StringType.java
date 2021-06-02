@@ -7,6 +7,8 @@ public class StringType extends SimpleType {
     private StringType() {
     }
 
-
+    public String toShortString() {
+        return "string";
+    }
 
 }

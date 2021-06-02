@@ -11,7 +11,7 @@ public abstract class Type {
 
     //public abstract Temp accept (TempVisitor v);
 
-    //public abstract String toShortString();
+    public abstract String toShortString();
 
     //public abstract boolean equals(Object o);
 

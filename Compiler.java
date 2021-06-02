@@ -142,9 +142,12 @@ public class Compiler {
 			// TODO why is this not throwing an exception when parsing identifiers with special characters?
 			Program program = parser.program();
             
-            for (Function f : program.functions) {
-                printFunction(f);
-            }
+            PrettyPrintVisitor printVisitor = new PrettyPrintVisitor();
+            printVisitor.visit(program);
+
+            //for (Function f : program.functions) {
+            //    printFunction(f);
+            //}
         }
         catch (RecognitionException e )	{
     		// A lexical or parsing error occured.

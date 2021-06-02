@@ -13,4 +13,7 @@ public class ExpressionStatement extends Statement {
         this.expression = expression;
     }
 
+    public <T> T accept(ASTVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 }

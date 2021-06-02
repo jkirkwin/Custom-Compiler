@@ -48,4 +48,9 @@ public class ASTNode {
         this.offset = node.offset;
     }
 
+    public <T> T accept(ASTVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
 }
+

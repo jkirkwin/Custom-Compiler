@@ -12,4 +12,8 @@ public abstract class Expression extends ASTNode {
     public Expression(int line, int offset) {
         super(line, offset);
     }
+
+    public <T> T accept(ASTVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 }

@@ -17,5 +17,9 @@ public class BinaryOperationExpression extends Expression {
         this.left = left;
         this.right = right;
     }
+
+    public <T> T accept(ASTVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 }
     

@@ -15,4 +15,8 @@ public class SimpleTypeNode extends TypeNode {
         super(line, offset, type);
     }
 
+    public <T> T accept(ASTVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
 }

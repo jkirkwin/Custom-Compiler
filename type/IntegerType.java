@@ -6,6 +6,9 @@ public class IntegerType extends SimpleType {
 
     private IntegerType() {
     }
-
+    
+    public String toShortString() {
+        return "int";
+    }
 
 }

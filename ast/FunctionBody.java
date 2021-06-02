@@ -26,4 +26,10 @@ public class FunctionBody extends ASTNode {
         this.declarations = Collections.unmodifiableList(new ArrayList<VariableDeclaration>(declarations));
         this.statements = Collections.unmodifiableList(new ArrayList<Statement>(statements));
     }
+
+    public <T> T accept(ASTVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
+
 }

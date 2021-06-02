@@ -17,4 +17,9 @@ public class Function extends ASTNode {
         this.declaration = decl;
         this.body = body;
     }
+ 
+    public <T> T accept(ASTVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
 }
