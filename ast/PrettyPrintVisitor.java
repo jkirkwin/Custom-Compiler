@@ -27,7 +27,10 @@ public class PrettyPrintVisitor implements ASTVisitor<Void> {
     }
 
 	public Void visit(AddExpression node) {
-	    System.out.println("Add"); // TODO
+		node.left.accept(this);
+		System.out.print(" + ");
+		node.right.accept(this);
+
         return null;
 	}
 
@@ -43,7 +46,11 @@ public class PrettyPrintVisitor implements ASTVisitor<Void> {
 	}
 
 	public Void visit(ArrayReference node) {
-	    System.out.println("Array reference"); // TODO
+		node.id.accept(this);
+		System.out.print("[");
+		node.indexExpression.accept(this);
+	    System.out.print("]");
+
 		return null;
 	}
 
@@ -68,7 +75,18 @@ public class PrettyPrintVisitor implements ASTVisitor<Void> {
 		throw new UnsupportedOperationException("Visit called with BinaryOperationExpression type");
 	}
 	
-	public Void visit(Block node) { // TODO
+	public Void visit(Block node) {
+		printlnWithIndent("{");
+		++indentLevel;
+
+		for (Statement stmt : node.statements) {
+			printIndent();
+			stmt.accept(this);
+		}
+
+		--indentLevel;
+		printlnWithIndent("}");
+
 		return null;
 	}
 
@@ -82,11 +100,17 @@ public class PrettyPrintVisitor implements ASTVisitor<Void> {
 		return null;
 	}
 
-	public Void visit(EqualityExpression node) { // TODO
+	public Void visit(EqualityExpression node) { 
+		node.left.accept(this);
+		System.out.print(" == ");
+		node.right.accept(this);
+
 		return null;
 	}
 
-	public Void visit(ExpressionStatement node) { // TODO
+	public Void visit(ExpressionStatement node) {
+		node.expression.accept(this);
+		System.out.println(";");
 		return null;
 	}
 
@@ -99,7 +123,7 @@ public class PrettyPrintVisitor implements ASTVisitor<Void> {
 		return null;
 	}
 
-	public Void visit(FormalParameter node) { // TODO
+	public Void visit(FormalParameter node) { 
 		node.typeNode.accept(this);
 		System.out.print(" ");
 		node.identifier.accept(this);
@@ -131,7 +155,21 @@ public class PrettyPrintVisitor implements ASTVisitor<Void> {
         return null;
 	}
 
-	public Void visit(FunctionCall node) { // TODO
+	public Void visit(FunctionCall node) { 
+		node.id.accept(this);
+
+		System.out.print("(");
+		var args = node.arguments;
+		for (int i = 0; i < args.size(); ++i) {
+			var arg = args.get(i);
+			arg.accept(this);
+
+			if (i < args.size() - 1) {
+				System.out.print(", ");
+			}
+		}
+		System.out.print(")");
+		
 		return null;
 	}
 
@@ -166,7 +204,18 @@ public class PrettyPrintVisitor implements ASTVisitor<Void> {
 		return null;
 	}
 
-	public Void visit(IfStatement node) { // TODO
+	public Void visit(IfStatement node) { 
+		System.out.print("if (");
+		node.condition.accept(this);
+		System.out.println(")");
+
+		node.ifBlock.accept(this);
+
+		if (node.elseBlock.isPresent()) {
+			printlnWithIndent("else");
+			node.elseBlock.get().accept(this);
+		}
+
 		return null;
 	}
 
@@ -175,23 +224,43 @@ public class PrettyPrintVisitor implements ASTVisitor<Void> {
 		return null;
 	}
 
-	public Void visit(LessThanExpression node) { // TODO
+	public Void visit(LessThanExpression node) { 
+		node.left.accept(this);
+		System.out.print(" < ");
+		node.right.accept(this);
+
 		return null;
 	}
 
-	public Void visit(MultiplyExpression node) { // TODO
+	public Void visit(MultiplyExpression node) {
+		node.left.accept(this);
+		System.out.print(" * ");
+		node.right.accept(this);
+
 		return null;
 	}
 
-	public Void visit(ParenExpression node) { // TODO
+	public Void visit(ParenExpression node) {
+		System.out.print("(");
+		node.expression.accept(this);
+		System.out.print(")");
+		
 		return null;
 	}
 
-	public Void visit(PrintlnStatement node) { // TODO
+	public Void visit(PrintlnStatement node) { 
+		System.out.print("println ");
+		node.expression.accept(this);
+		System.out.println(";");
+
 		return null;
 	}
 
-	public Void visit(PrintStatement node) { // TODO
+	public Void visit(PrintStatement node) { 
+		System.out.print("print ");
+		node.expression.accept(this);
+		System.out.println(";");
+
 		return null;
 	}
 
@@ -202,7 +271,16 @@ public class PrettyPrintVisitor implements ASTVisitor<Void> {
         return null;
 	}
 
-	public Void visit(ReturnStatement node) { // TODO
+	public Void visit(ReturnStatement node) {
+		System.out.print("return");
+
+		if (node.returnExpression.isPresent()) {
+			System.out.print(" ");
+			node.returnExpression.get().accept(this);
+		}
+
+		System.out.println(";");
+
 		return null;
 	}
 
@@ -220,7 +298,11 @@ public class PrettyPrintVisitor implements ASTVisitor<Void> {
 		return null;
 	}
 
-	public Void visit(SubtractExpression node) { // TODO
+	public Void visit(SubtractExpression node) {
+		node.left.accept(this);
+		System.out.print(" - ");
+		node.right.accept(this);
+
 		return null;
 	}
 
@@ -237,7 +319,13 @@ public class PrettyPrintVisitor implements ASTVisitor<Void> {
 		return null;
 	}
 
-	public Void visit(WhileStatement node) { // TODO
+	public Void visit(WhileStatement node) {
+		System.out.print("while (");
+		node.condition.accept(this);
+		System.out.println(")");
+
+		node.block.accept(this);
+
 		return null;
 	}
 }
