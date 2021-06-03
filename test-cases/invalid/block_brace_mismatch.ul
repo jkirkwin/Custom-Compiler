@@ -1,0 +1,8 @@
+// Similar to some of the other cases, antlr reports an
+// error here, but compilation doesn't fail.
+void main() {
+    while (true) {
+        print "In the loop";
+    }}
+    print "Out of the function";
+}
