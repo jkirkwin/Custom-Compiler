@@ -28,7 +28,7 @@ public class PrettyPrintVisitor implements ASTVisitor<Void> {
 
 	public Void visit(AddExpression node) {
 		node.left.accept(this);
-		System.out.print(" + ");
+		System.out.print("+");
 		node.right.accept(this);
 
         return null;
@@ -102,7 +102,7 @@ public class PrettyPrintVisitor implements ASTVisitor<Void> {
 
 	public Void visit(EqualityExpression node) { 
 		node.left.accept(this);
-		System.out.print(" == ");
+		System.out.print("==");
 		node.right.accept(this);
 
 		return null;
@@ -226,7 +226,7 @@ public class PrettyPrintVisitor implements ASTVisitor<Void> {
 
 	public Void visit(LessThanExpression node) { 
 		node.left.accept(this);
-		System.out.print(" < ");
+		System.out.print("<");
 		node.right.accept(this);
 
 		return null;
@@ -234,7 +234,7 @@ public class PrettyPrintVisitor implements ASTVisitor<Void> {
 
 	public Void visit(MultiplyExpression node) {
 		node.left.accept(this);
-		System.out.print(" * ");
+		System.out.print("*");
 		node.right.accept(this);
 
 		return null;
@@ -300,7 +300,7 @@ public class PrettyPrintVisitor implements ASTVisitor<Void> {
 
 	public Void visit(SubtractExpression node) {
 		node.left.accept(this);
-		System.out.print(" - ");
+		System.out.print("-");
 		node.right.accept(this);
 
 		return null;
