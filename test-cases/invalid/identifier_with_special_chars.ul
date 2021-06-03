@@ -1,3 +1,5 @@
-void main() {
+ // This actually does compile, but it won't be tested
+ // because it is due to an antlr configuration issue.
+ void main() {
     int id$;
 }

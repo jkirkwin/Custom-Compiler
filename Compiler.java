@@ -33,7 +33,6 @@ public class Compiler {
 		UnnamedLanguageParser parser = new UnnamedLanguageParser(tokens);
 
 		try {
-			// TODO why is this not throwing an exception when parsing identifiers with special characters?
 			Program program = parser.program();
             
             PrettyPrintVisitor printVisitor = new PrettyPrintVisitor();
