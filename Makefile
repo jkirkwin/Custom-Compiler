@@ -12,8 +12,9 @@ grammar: $(GSRCS)
 	java org.antlr.Tool -fo . $(GSRC) 
 
 compiler:
+	javac $(JAVAC_OPTS) semantic/*.java
 	javac $(JAVAC_OPTS) *.java
 
 clean:
-	rm -f *.class $(GNAME)*.java $(GNAME).tokens ast/*.class type/*.class
+	rm -f *.class $(GNAME)*.java $(GNAME).tokens ast/*.class type/*.class semantic/*.class
 
