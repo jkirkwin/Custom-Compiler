@@ -1,6 +1,7 @@
 package semantic;
 
-import java.util.Stack;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.NoSuchElementException;
 
 /**
@@ -18,17 +19,17 @@ import java.util.NoSuchElementException;
 public class Environment<K, V> {
 
     // Holds all key-value bindings which have been defined.
-    private final Stack<EnvironmentEntry<K, V>> bindingStack;
+    private final Deque<EnvironmentEntry<K, V>> bindingStack;
 
     private EnvironmentEntry<K, V> getMarker() {
         return EnvironmentEntry.<K, V>getMarker();
     }
 
     /** 
-     * Create a new, empty environment.
+     * Create a new, empty environment with an empty global scope.
      */
     public Environment() {
-        bindingStack = new Stack<EnvironmentEntry<K, V>>();
+        bindingStack = new LinkedList<EnvironmentEntry<K, V>>();
         enterScope();
     }
 
@@ -75,7 +76,7 @@ public class Environment<K, V> {
      * Enter a new scope level.
      */
     public void enterScope() {
-        bindingStack.push(getMarker());
+        bindingStack.addFirst(getMarker());
     }
 
 
@@ -83,22 +84,23 @@ public class Environment<K, V> {
      * Remove all bindings from the deepest active scope.
      */
     public void exitScope() {
-        if (bindingStack.empty()) {
+        if (bindingStack.isEmpty()) {
             throw new IllegalStateException("No scope to exit");
         }
 
         // Pop all bindings from the current scope.
-        while (!bindingStack.empty() && !bindingStack.peek().isMarker()) {
-            bindingStack.pop();
+        while (!bindingStack.isEmpty() && !bindingStack.getFirst().isMarker()) {
+            bindingStack.removeFirst();
         }
 
         // No scope marker preceeded the bindings.
-        if (bindingStack.empty()) {
+        if (bindingStack.isEmpty()) {
             throw new IllegalStateException("Missing scope entry marker");
         }
 
         // Pop the scope marker.
-        bindingStack.pop();
+        assert bindingStack.getFirst().isMarker();
+        bindingStack.removeFirst();
     }
 
     /**
@@ -130,4 +132,89 @@ public class Environment<K, V> {
         bindingStack.push(new EnvironmentEntry<K, V> (key, value));
     }
 
+    // Answers whether assertions are enabled at runtime.
+    private static boolean checkAssertsEnabled() {
+        boolean assertsEnabled = false;
+        assert assertsEnabled = true; // Intentional side effect
+        return assertsEnabled;
+    }
+
+    public static void main(String[] args) {
+        // Unfortunately the UVic linux servers don't have JUnit installed so we're going
+        // to test just using assertions for now.
+
+        System.out.println("Running smoke tests for Environment.java.");
+        if (!checkAssertsEnabled()) {
+            System.err.println("ERROR: Assertions are disabled.");
+            System.exit(1);
+        }
+
+        Environment<String, Integer> env = new Environment<String, Integer>();
+
+        // Check initial state
+        assert !env.exists("Foo");
+        assert !env.existsInCurrentScope("Foo");
+        try {
+            env.lookup("Foo");
+            assert false;
+        }
+        catch (Exception e) {
+            // Nothing to do here.
+        }
+
+        // Insert a single binding into the current scope.
+        env.bind("Foo", 1);
+        assert env.exists("Foo");
+        assert env.existsInCurrentScope("Foo");
+        assert env.lookup("Foo") == 1;
+
+        // Insert a second binding into the top-level scope
+        env.bind("Bar", 2);
+        assert env.exists("Bar");
+        assert env.existsInCurrentScope("Bar");
+        assert env.lookup("Bar") == 2;
+
+        // Foo should still be accessible
+        assert env.exists("Foo");
+        assert env.existsInCurrentScope("Foo");
+        assert env.lookup("Foo") == 1;
+
+        // Enter a new scope level. Both foo and bar should still
+        // be accessible.
+        env.enterScope();
+
+        assert env.exists("Foo");
+        assert ! env.existsInCurrentScope("Foo");
+        assert env.lookup("Foo") == 1;
+
+        assert env.exists("Bar");
+        assert ! env.existsInCurrentScope("Bar");
+        assert env.lookup("Bar") == 2;
+
+        // Add a new binding that shadows Foo
+        env.bind("Foo", 10);
+        assert env.exists("Foo");
+        assert env.existsInCurrentScope("Foo");
+        assert env.lookup("Foo") == 10;
+
+        // Add another new binding in the nested scope
+        env.bind("Baz", 42);
+        assert env.exists("Baz");
+        assert env.existsInCurrentScope("Baz");
+        assert env.lookup("Baz") == 42;
+
+        // Exit the scope and confirm the nested items have been removed
+        env.exitScope();
+        assert env.exists("Foo");
+        assert env.exists("Bar");
+        assert ! env.exists("Baz");
+        
+        assert env.existsInCurrentScope("Foo");
+        assert env.existsInCurrentScope("Bar");
+
+        assert env.lookup("Foo") == 1; // Original value should be restored
+        assert env.lookup("Bar") == 2;
+
+        System.out.println("Tests passed.");
+    }
 }
