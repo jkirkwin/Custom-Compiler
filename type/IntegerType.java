@@ -7,7 +7,8 @@ public class IntegerType extends SimpleType {
     private IntegerType() {
     }
     
-    public String toShortString() {
+    @Override
+    public String toString() {
         return "int";
     }
 

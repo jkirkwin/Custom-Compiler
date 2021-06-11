@@ -55,7 +55,7 @@ public class PrettyPrintVisitor implements ASTVisitor<Void> {
 	}
 
 	public Void visit(ArrayTypeNode node) {
-	    System.out.print(node.type.toShortString());
+	    System.out.print(node.type.toString());
 		return null;
 	}
 
@@ -285,7 +285,7 @@ public class PrettyPrintVisitor implements ASTVisitor<Void> {
 	}
 
 	public Void visit(SimpleTypeNode node) {
-		System.out.print(node.type.toShortString());
+		System.out.print(node.type.toString());
 		return null;
 	}
 

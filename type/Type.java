@@ -5,14 +5,13 @@ package type;
  */
 public abstract class Type {
 
-    //public abstract void accept (Visitor v);
+    /**
+     * Returns a short string representation of the type for use
+     * during intermediate code generation.
+     */
+    // public abstract String toShortString();
 
-    //public abstract Type accept (TypeVisitor v) throws SemanticException;
-
-    //public abstract Temp accept (TempVisitor v);
-
-    public abstract String toShortString();
-
+    // TODO Implement this in all subclasses
     //public abstract boolean equals(Object o);
 
 }

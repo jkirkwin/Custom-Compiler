@@ -7,7 +7,8 @@ public class StringType extends SimpleType {
     private StringType() {
     }
 
-    public String toShortString() {
+    @Override
+    public String toString() {
         return "string";
     }
 

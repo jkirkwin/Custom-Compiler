@@ -4,7 +4,8 @@ public class VoidType extends SimpleType {
 
     public static final VoidType INSTANCE = new VoidType();
 
-    public String toShortString() {
+    @Override
+    public String toString() {
         return "void";
     }
 

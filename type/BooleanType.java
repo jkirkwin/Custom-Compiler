@@ -7,7 +7,8 @@ public class BooleanType extends SimpleType {
     private BooleanType() {
     }
 
-    public String toShortString() {
+    @Override
+    public String toString() {
         return "boolean";
     }
 
