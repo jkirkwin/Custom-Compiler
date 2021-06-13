@@ -29,7 +29,7 @@ public class FunctionCall extends Expression {
         this.arguments = Collections.unmodifiableList(listCopy);
     }
 
-    public <T> T accept(ASTVisitor<T> visitor) {
+    public <T> T accept(ASTVisitor<T> visitor) throws ASTVisitorException {
         return visitor.visit(this);
     }
 

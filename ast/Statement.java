@@ -21,7 +21,7 @@ public abstract class Statement extends ASTNode {
         super(node);
     }
 
-    public <T> T accept(ASTVisitor<T> visitor) {
+    public <T> T accept(ASTVisitor<T> visitor) throws ASTVisitorException {
         return visitor.visit(this);
     }
 }

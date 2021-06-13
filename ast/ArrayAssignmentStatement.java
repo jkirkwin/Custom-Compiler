@@ -30,7 +30,7 @@ public class ArrayAssignmentStatement extends Statement {
         this.valueExpression = valueExpression;
     }
 
-    public <T> T accept(ASTVisitor<T> visitor) {
+    public <T> T accept(ASTVisitor<T> visitor) throws ASTVisitorException {
         return visitor.visit(this);
     }
 

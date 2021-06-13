@@ -48,7 +48,7 @@ public class ASTNode {
         this.offset = node.offset;
     }
 
-    public <T> T accept(ASTVisitor<T> visitor) {
+    public <T> T accept(ASTVisitor<T> visitor) throws ASTVisitorException {
         return visitor.visit(this);
     }
 

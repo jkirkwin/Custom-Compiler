@@ -40,7 +40,7 @@ public class IfStatement extends Statement {
         this.elseBlock = Optional.of(elseBlock);
     }
 
-    public <T> T accept(ASTVisitor<T> visitor) {
+    public <T> T accept(ASTVisitor<T> visitor) throws ASTVisitorException {
         return visitor.visit(this);
     }
 

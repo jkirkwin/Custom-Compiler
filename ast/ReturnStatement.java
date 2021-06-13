@@ -32,7 +32,7 @@ public class ReturnStatement extends Statement {
         this.returnExpression = Optional.of(returnExpression);
     }
 
-    public <T> T accept(ASTVisitor<T> visitor) {
+    public <T> T accept(ASTVisitor<T> visitor) throws ASTVisitorException {
         return visitor.visit(this);
     }
 }

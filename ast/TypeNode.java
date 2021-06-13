@@ -14,7 +14,7 @@ public abstract class TypeNode extends ASTNode {
         this.type = type;
     }
 
-    public <T> T accept(ASTVisitor<T> visitor) {
+    public <T> T accept(ASTVisitor<T> visitor) throws ASTVisitorException {
         return visitor.visit(this);
     }
 
