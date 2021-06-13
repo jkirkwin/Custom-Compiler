@@ -41,8 +41,8 @@ public class Compiler {
 		try {
 			Program program = parser.program();
             
-            PrettyPrintVisitor printVisitor = new PrettyPrintVisitor();
-            printVisitor.visit(program);
+            TypeCheckVisitor semanticVisitor = new TypeCheckVisitor();
+            semanticVisitor.visit(program);
         }
         catch (RecognitionException e )	{
     		// A lexical or parsing error occured.
@@ -52,12 +52,14 @@ public class Compiler {
 			handleCompilationError();
 		}
 		catch(SemanticException e) {
-			// TODO Handle the semantic exception properly. Print out the message and position information if appropriate.
-			
+			// Print out the cause of the error and positional information 
+			// if appropriate.
+			System.err.println(e.getMessageWithPosition());
+
 			handleCompilationError();
 		}
 		catch (Exception e) {
-			System.out.println(e);
+			System.err.println(e);
 			e.printStackTrace();
 
 			handleCompilationError();

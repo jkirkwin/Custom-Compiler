@@ -9,6 +9,14 @@ import type.*;
  */
 public class TypeCheckVisitor implements ASTVisitor<Type>  {
 
+    private final Environment<String, Type> variableEnv;
+    private final Environment<String, FunctionDecl> functionEnv;
+
+    public TypeCheckVisitor() {
+        variableEnv = new Environment<String, Type>();
+        functionEnv = new Environment<String, FunctionDecl>();
+    }
+
     public Type visit(AddExpression node) throws SemanticException {
         return null; // TODO
     }
@@ -117,8 +125,46 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         return null; // TODO
     }
 
-	public Type visit(Program node) throws SemanticException {
-        return null; // TODO
+	public Type visit(Program node) throws ASTVisitorException {
+        // Add all functions to the symbol table so they are all accessible
+        // when type checking each one.
+        for (var function : node.functions) {
+            var functionDecl = function.declaration;
+            String functionName = functionDecl.identifier.value;
+
+            // Prevent the re-use of a function name
+            if (functionEnv.exists(functionName)) {
+                var duplicate = functionEnv.lookup(functionName);
+                throw new DuplicateFunctionDefinitionException(duplicate, functionDecl);
+            }
+
+            functionEnv.bind(functionName, functionDecl);
+        }
+
+        // Check for a main() function with the appropriate signature
+        if (! functionEnv.exists("main")) {
+            throw new SemanticException("Missing main() function");
+        }
+        else {
+            var mainDecl = functionEnv.lookup("main");
+
+            Type mainType = mainDecl.typeNode.type;
+            if (! mainType.equals(VoidType.INSTANCE)) {
+                throw new SemanticException("Invalid main() declaration: return type '" + mainType.toString() + "' but expected 'void'", mainDecl);
+            }
+
+            if (! mainDecl.formals.isEmpty()) {
+                throw new SemanticException("Invalid main() declaration: main() must not take formal parameters", mainDecl);
+            }
+        }
+
+        // Main exists and is well formed. Now type check each function.
+        for (Function function : node.functions) {
+            node.accept(this);
+        }
+
+        // Nothing to return
+        return null;
     }
 
 	public Type visit(ReturnStatement node) throws SemanticException {
