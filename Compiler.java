@@ -1,6 +1,7 @@
-import org.antlr.runtime.*;
-import java.io.*;
 import ast.*;
+import java.io.*;
+import org.antlr.runtime.*;
+import semantic.*;
 
 /*
  * Uses the ANTLR tool to perform lexical analysis and generate
@@ -8,6 +9,11 @@ import ast.*;
  */
 public class Compiler {
     
+	private static void handleCompilationError() {
+		// Allows error code checking to automate testing.
+		System.exit(1); 
+	}
+
     public static void main (String[] args) throws IOException {
 		
 		if (args.length == 0 ) {
@@ -43,15 +49,18 @@ public class Compiler {
 	    	// ANTLR will have already printed information about the error
 		    // to System.err.
 
-		    // Allows error code checking to automate testing.
-		    System.exit(1); 
+			handleCompilationError();
+		}
+		catch(SemanticException e) {
+			// TODO Handle the semantic exception properly. Print out the message and position information if appropriate.
+			
+			handleCompilationError();
 		}
 		catch (Exception e) {
 			System.out.println(e);
 			e.printStackTrace();
 
-			// Allow error code checking to automate testing.
-			System.exit(1);
+			handleCompilationError();
 		}
 	}
 }
