@@ -37,7 +37,7 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         ArrayType type = node.getArrayType();
 
         if (isVoid(type.simpleType)) {
-            throw new SemanticException("Invalid array type definition: simple type must not be 'void'", node);
+            throw new SemanticException("Invalid array type definition: underlying type must not be 'void'", node);
         }
 
         return type;
@@ -91,7 +91,7 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         // Formal parameters must not have void type
         Type type = node.typeNode.accept(this);
         if (isVoid(type)) {
-            throw new SemanticException("Invalid type of 'void' for formal parameter '" + name + "'", node);
+            throw new SemanticException("Formal parameter '" + name + "' must not be of type 'void'", node);
         }
 
         // Formals must have unique names.
@@ -201,8 +201,7 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
 
             // Prevent the re-use of a function name
             if (functionEnv.exists(functionName)) {
-                var duplicate = functionEnv.lookup(functionName);
-                throw new DuplicateFunctionDefinitionException(duplicate, functionDecl);
+                throw new DuplicateFunctionDefinitionException(functionDecl);
             }
 
             functionEnv.bind(functionName, functionDecl);
@@ -268,7 +267,7 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         // Variables must have a non-void type.
         Type type = node.typeNode.accept(this);
         if (isVoid(type)) {
-            throw new SemanticException("Invalid type of 'void' for variable '" + name + "'", node);
+            throw new SemanticException("Variable '" + name + "' must not be of type 'void'", node);
         }
 
         // Variables are not allowed to shadow function parameters or other variables.
@@ -276,6 +275,8 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
             throw new SemanticException("Duplicate variable name '" + name + "' encountered", id);
         }
         
+        variableEnv.bind(name, type);
+
         return type;
     }
 
