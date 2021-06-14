@@ -1,0 +1,7 @@
+void main() {
+    foo('c'); // Argument type should be int
+}
+
+void foo(int bar) {
+    print bar;
+}

@@ -75,8 +75,8 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         return null; // TODO
     }
 
-	public Type visit(ExpressionStatement node) throws SemanticException {
-        return null; // TODO
+	public Type visit(ExpressionStatement node) throws ASTVisitorException {
+        return node.expression.accept(this);
     }
 
 	public Type visit(FloatLiteral node) {
@@ -118,13 +118,44 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         return null;
     }
 
-	public Type visit(FunctionCall node) throws SemanticException {
-        return null; // TODO
+	public Type visit(FunctionCall node) throws ASTVisitorException {
+        String functionName = node.id.value;
+        var args = node.arguments;
+
+        // The function must exist
+        if (!functionEnv.exists(functionName)) {
+            throw new SemanticException("No function named '" + functionName + "' is defined", node);
+        }
+
+        FunctionDecl functionDeclaration = functionEnv.lookup(functionName); 
+        var formals = functionDeclaration.formals;
+
+        // Check that the correct number of arguments were provided
+        int expectedArgCount = formals.size();
+        int actualArgCount = args.size();
+        if (expectedArgCount != actualArgCount) {
+            String message = "Function '" + functionName + "' requires " + expectedArgCount + 
+                             "arguments but was called with " + actualArgCount;
+            throw new SemanticException(message, node);
+        }
+        
+        // Check that each argument matches the type we expect it to have
+        for (int i = 0; i < expectedArgCount; ++i) {
+            FormalParameter formal = formals.get(i);
+            Type expectedType = formal.typeNode.type;
+
+            Expression argExpression = args.get(i); 
+            Type actualType = argExpression.accept(this);
+
+            if (!expectedType.equals(actualType)) {
+                throw new TypeMismatchException(expectedType, actualType, argExpression);
+            }
+        }
+
+        return functionDeclaration.typeNode.type;
     }
 
 	public Type visit(FunctionDecl node) throws ASTVisitorException {
-
-        variableEnv.enterScope();
 
         for (var formal : node.formals) {
             formal.accept(this);
@@ -135,16 +166,21 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
 
 	public Type visit(Function node) throws ASTVisitorException {
 
+
         // TODO Check that variables are defined before being used
 
         // TODO Check that the declaration type matches the return type - this should be done when we hit a return statement.
         //      May need to keep some state to indicate which function we're currently in. That would also help with checking 
         //      parameters vs local variables.
 
-        Type returnType = node.declaration.accept(this);
+        variableEnv.enterScope();
+
+        Type functionReturnType = node.declaration.accept(this);
         node.body.accept(this);
 
-        return returnType;
+        variableEnv.exitScope();
+
+        return functionReturnType;
     }
 
 	public Type visit(Identifier node) throws SemanticException {
