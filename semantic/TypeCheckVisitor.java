@@ -279,9 +279,17 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         return type;
     }
 
-	public Type visit(WhileStatement node) throws SemanticException {
-        return null; // TODO
+	public Type visit(WhileStatement node) throws ASTVisitorException {
+        // The type of the condition expression must be a boolean
+        Type conditionType = node.condition.accept(this);
+        if (!BooleanType.INSTANCE.equals(conditionType)) {
+            throw new TypeMismatchException(BooleanType.INSTANCE, conditionType, node.condition);
+        }
+
+        // Run semantic checks on the block
+        node.block.accept(this);
+        
+        // Nothing meaningful to return
+        return null;
     }
-
-
 }

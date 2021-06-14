@@ -53,7 +53,7 @@ public class SemanticException extends ASTVisitorException {
      * corresponding position(s) in the source code which caused the error
      * if any such positions exist.
      */
-    public String getMessageWithPosition() {
+    public String getMessageWithPosition() { // TODO Update this to have the format 'ERROR:line:offset: <Message>'
         if (hasPosition()) {
             return getMessage() + " at " + posString;
         }
