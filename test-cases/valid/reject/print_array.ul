@@ -1,0 +1,8 @@
+void main() {
+
+    string[2] strings;
+    s[0] = "Foo";
+    s[1] = "Bar";
+
+    println strings; // Cannot print arrays
+}

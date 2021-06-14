@@ -1,0 +1,7 @@
+void main() {
+    print foo(); // Cannot print result of void function
+}
+
+void foo() {
+    print "Foo";
+}

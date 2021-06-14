@@ -1,0 +1,4 @@
+void main() {
+    string s_;
+    print s; // No such variable
+}

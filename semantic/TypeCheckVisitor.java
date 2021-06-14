@@ -148,7 +148,19 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
     }
 
 	public Type visit(Identifier node) throws SemanticException {
-        return null; // TODO
+        // This should only be called when evaluating the identifier 
+        // as an expression. E.g. in the statement
+        //          print(foo)
+        //
+        // This should not be called when type checking anything else,
+        // including variable declarations, function calls, etc.
+
+        String name = node.value;
+        if (!variableEnv.exists(name)) {
+            throw new SemanticException("Undefined reference to variable '" + name + "'", node);
+        }
+
+        return variableEnv.lookup(name);
     }
 
 	public Type visit(IfStatement node) throws ASTVisitorException {
@@ -184,12 +196,33 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         return null; // TODO
     }
 
-	public Type visit(PrintlnStatement node) throws SemanticException {
-        return null; // TODO
+    private boolean isPrintableType(Type t) {
+        // We allow printing of all simple, non-void types.
+        return t != null &&
+               !isVoid(t) &&
+               !(t instanceof ArrayType);
     }
 
-	public Type visit(PrintStatement node) throws SemanticException {
-        return null; // TODO
+	public Type visit(PrintlnStatement node) throws ASTVisitorException {
+        Type expressionType = node.expression.accept(this);
+
+        if (!isPrintableType(expressionType)) {
+            throw new UnprintableTypeException(expressionType, node.expression);
+        }
+
+        // Nothing meaningful to return 
+        return null;
+    }
+
+	public Type visit(PrintStatement node) throws ASTVisitorException {
+        Type expressionType = node.expression.accept(this);
+
+        if (!isPrintableType(expressionType)) {
+            throw new UnprintableTypeException(expressionType, node.expression);
+        }
+
+        // Nothing meaningful to return 
+        return null;
     }
 
 	public Type visit(Program node) throws ASTVisitorException {
