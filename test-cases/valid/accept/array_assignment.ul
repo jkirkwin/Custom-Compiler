@@ -1,0 +1,15 @@
+void main() {
+    array_item_assigment();
+    array_whole_assignment();
+}
+
+void array_item_assigment() {
+    int[4] ints;
+    ints[0] = 1;
+}   
+
+void array_whole_assignment() {
+    int[4] ints_1;
+    int[4] ints_2;
+    ints_1 = ints_2;
+}

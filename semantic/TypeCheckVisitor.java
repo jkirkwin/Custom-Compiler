@@ -25,8 +25,27 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         return null; // TODO
     }
 
-	public Type visit(ArrayAssignmentStatement node) throws SemanticException {
-        return null; // TODO
+	public Type visit(ArrayAssignmentStatement node) throws ASTVisitorException {
+        // Check the array id exists and get its underlying type
+        Type arrayType = node.arrayId.accept(this);
+        assert arrayType instanceof ArrayType;
+        SimpleType expectedType = ((ArrayType)arrayType).simpleType;
+
+        // Check that the index expression yields an integer
+        Type indexType = node.indexExpression.accept(this);
+        if (!IntegerType.INSTANCE.equals(indexType)) {
+            throw new SemanticException("Cannot use '" + indexType.toString() + "' as array index", node.indexExpression);
+        }
+
+        // Check the type of the RHS of the assignment statement and ensure that
+        // it matches the array component type.
+        Type actualType = node.valueExpression.accept(this);
+        if (!expectedType.equals(actualType)) {
+            throw new TypeMismatchException(expectedType, actualType, node.valueExpression);
+        }
+
+        // Nothing meaningful to return here
+        return null;
     }
 
 	public Type visit(ArrayReference node) throws SemanticException {
@@ -43,8 +62,16 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         return type;
     }
 
-	public Type visit(AssignmentStatement node) throws SemanticException {
-        return null; // TODO
+	public Type visit(AssignmentStatement node) throws ASTVisitorException {
+        Type expectedType = node.id.accept(this);
+        Type actualType = node.value.accept(this);
+
+        if (!expectedType.equals(actualType)) {
+            throw new TypeMismatchException(expectedType, actualType, node.value);
+        }
+
+        // Nothing meaningful to return here
+        return null;
     }
 
 	public Type visit(ASTNode node) throws SemanticException {
@@ -185,8 +212,9 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
 
 	public Type visit(Identifier node) throws SemanticException {
         // This should only be called when evaluating the identifier 
-        // as an expression. E.g. in the statement
-        //          print(foo)
+        // as an expression. E.g. in the following statements
+        //          print(foo) // id=foo
+        //          i = 1; // id=i
         //
         // This should not be called when type checking anything else,
         // including variable declarations, function calls, etc.
