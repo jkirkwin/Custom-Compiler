@@ -59,12 +59,12 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         return null; // TODO
     }
 
-	public Type visit(BooleanLiteral node) throws SemanticException {
-        return null; // TODO
+	public Type visit(BooleanLiteral node) {
+        return BooleanType.INSTANCE;
     }
 
-	public Type visit(CharacterLiteral node) throws SemanticException {
-        return null; // TODO
+	public Type visit(CharacterLiteral node) {
+        return CharacterType.INSTANCE;
     }
 
 	public Type visit(EqualityExpression node) throws SemanticException {
@@ -79,8 +79,8 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         return null; // TODO
     }
 
-	public Type visit(FloatLiteral node) throws SemanticException {
-        return null; // TODO
+	public Type visit(FloatLiteral node) {
+        return FloatType.INSTANCE;
     }
 
 	public Type visit(FormalParameter node) throws ASTVisitorException {
@@ -151,12 +151,25 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         return null; // TODO
     }
 
-	public Type visit(IfStatement node) throws SemanticException {
-        return null; // TODO
+	public Type visit(IfStatement node) throws ASTVisitorException {
+        // The type of the condition expression must be a boolean
+        Type conditionType = node.condition.accept(this);
+        if (!BooleanType.INSTANCE.equals(conditionType)) {
+            throw new TypeMismatchException(BooleanType.INSTANCE, conditionType, node.condition);
+        }
+
+        // Check the if and else blocks
+        node.ifBlock.accept(this);
+        if (node.elseBlock.isPresent()) {
+            node.elseBlock.get().accept(this);
+        }
+
+        // Nothing meaningful to return
+        return null;
     }
 
-	public Type visit(IntLiteral node) throws SemanticException {
-        return null; // TODO
+	public Type visit(IntLiteral node) {
+        return IntegerType.INSTANCE;
     }
 
 	public Type visit(LessThanExpression node) throws SemanticException {
@@ -233,8 +246,8 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         return null; // TODO
     }
 
-	public Type visit(StringLiteral node) throws SemanticException {
-        return null; // TODO
+	public Type visit(StringLiteral node) {
+        return StringType.INSTANCE;
     }
 
 	public Type visit(SubtractExpression node) throws SemanticException {

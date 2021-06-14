@@ -1,0 +1,12 @@
+void main() {
+    if (1) { // Can't use int type in condition
+        print "This should not work";
+    }
+    else {
+        foo(false);
+    }
+}
+
+int foo(boolean b) {
+    return 1;
+}
