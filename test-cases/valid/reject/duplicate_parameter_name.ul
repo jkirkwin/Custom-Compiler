@@ -1,0 +1,7 @@
+int foo(int bar, boolean bar) {
+    return 1;
+}
+
+void main() {
+    foo(1, false);
+}

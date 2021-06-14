@@ -1,0 +1,13 @@
+void main() {
+    foo(true);
+}
+
+int foo(boolean foo) { // Parameters may shadow function names
+    print foo;
+}
+
+int bar(float baz) {
+    string foo; // Variables may shadow function names
+    foo = "FOO";
+    return 1;
+}

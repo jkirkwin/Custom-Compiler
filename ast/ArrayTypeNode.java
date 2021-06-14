@@ -7,6 +7,14 @@ import type.ArrayType;
  */
 public class ArrayTypeNode extends TypeNode {
 
+    /**
+     * Retrieves the underlying ArrayType, preventing client code
+     * from performing potentially unsafe casts.
+     */
+    public final ArrayType getArrayType() {
+        return (ArrayType)type;
+    }
+
     public ArrayTypeNode(int line, int offset, ArrayType type) {
         super(line, offset, type);
     }

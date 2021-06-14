@@ -1,0 +1,7 @@
+void main() {
+    foo(2);
+}
+
+void foo(int bar) {
+    boolean bar; // Variables cannot shadow parameters
+}
