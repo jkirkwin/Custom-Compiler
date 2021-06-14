@@ -48,6 +48,7 @@ function run_test() {
     if [ -z ${VERBOSE+x} ]; then
          $JAVA_COMMAND $file 2>/dev/null
     else 
+        echo $file
         $JAVA_COMMAND $file
     fi
 
