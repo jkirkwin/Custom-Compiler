@@ -15,4 +15,14 @@ public class ArrayType extends Type {
         return simpleType.toString() + "[" + size + "]";
     }
 
+    @Override
+    public boolean equals(Object other) {
+        if (other != null && other instanceof ArrayType) {
+            ArrayType otherArrayType = (ArrayType) other;
+            return size == otherArrayType.size && simpleType.equals(otherArrayType.simpleType);
+        }
+        
+        return false;
+    }
+
 }

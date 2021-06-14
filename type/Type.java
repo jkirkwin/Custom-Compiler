@@ -11,7 +11,6 @@ public abstract class Type {
      */
     // public abstract String toShortString();
 
-    // TODO Implement this in all subclasses
-    //public abstract boolean equals(Object o);
+    public abstract boolean equals(Object o);
 
 }
