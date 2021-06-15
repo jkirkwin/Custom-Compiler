@@ -1,0 +1,4 @@
+void main() {
+    int i;
+    print (i[0]); // i is not an array
+}

@@ -64,14 +64,16 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
 
 	public Type visit(ArrayAssignmentStatement node) throws ASTVisitorException {
         // Check the array id exists and get its underlying type
-        Type arrayType = node.arrayId.accept(this);
-        assert isArray(arrayType);
+        Type arrayType = node.arrayId.accept(this); 
+        if (!isArray(arrayType)) {
+            throw new NonArrayIndexException(node.arrayId, arrayType);            
+        }
         SimpleType expectedType = ((ArrayType)arrayType).simpleType;
 
         // Check that the index expression yields an integer
         Type indexType = node.indexExpression.accept(this);
         if (!isInt(indexType)) {
-            throw new SemanticException("Cannot use '" + indexType.toString() + "' as array index", node.indexExpression);
+            throw new InvalidIndexException(indexType, node.indexExpression);
         }
 
         // Check the type of the RHS of the assignment statement and ensure that
@@ -85,8 +87,19 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         return null;
     }
 
-	public Type visit(ArrayReference node) throws SemanticException {
-        return null; // TODO
+	public Type visit(ArrayReference node) throws ASTVisitorException {
+        Type type = node.id.accept(this);
+        if (!isArray(type)) {
+            throw new NonArrayIndexException(node.id, type);
+        }
+        ArrayType arrayType = (ArrayType) type;
+
+        Type indexType = node.indexExpression.accept(this);
+        if (!isInt(indexType)) {
+            throw new InvalidIndexException(indexType, node.indexExpression);
+        }
+
+        return arrayType.simpleType;
     }
 
 	public Type visit(ArrayTypeNode node) throws SemanticException {
