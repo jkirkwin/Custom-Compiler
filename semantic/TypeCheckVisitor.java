@@ -7,7 +7,9 @@ import type.*;
  * A visitor which traverses the abstract syntax tree and verifies
  * semantic predicates and type-system conformance.
  */
-public class TypeCheckVisitor implements ASTVisitor<Type>  {
+public class TypeCheckVisitor implements ASTVisitor<Type>  { 
+    // TODO Consider giving the interface a second type parameter <E extends ASTVisitorException> .
+    //      That would let us use SemanticException and its children here exclusively.
 
     private static boolean isVoid(Type type) {
         return VoidType.INSTANCE.equals(type);
