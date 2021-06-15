@@ -41,10 +41,13 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
 
     private final Environment<String, Type> variableEnv;
     private final Environment<String, FunctionDecl> functionEnv;
+    
+    private Type currentFunctionReturnType;
 
     public TypeCheckVisitor() {
         variableEnv = new Environment<String, Type>();
         functionEnv = new Environment<String, FunctionDecl>();
+        currentFunctionReturnType = null;
     }
 
     public Type visit(AddExpression node) throws ASTVisitorException {
@@ -259,19 +262,23 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
     }
 
 	public Type visit(Function node) throws ASTVisitorException {
-
-        // TODO Check that the declaration type matches the return type - this should be done when we hit a return statement.
-        //      May need to keep some state to indicate which function we're currently in. That would also help with checking 
-        //      parameters vs local variables.
-
         variableEnv.enterScope();
 
-        Type functionReturnType = node.declaration.accept(this);
+        // Type-check the declaration and cache the return type so the
+        // validation logic for the function body can access it.
+        assert currentFunctionReturnType == null;
+        currentFunctionReturnType = node.declaration.accept(this);
+
+        // Type check the body using the cached return type value.
         node.body.accept(this);
 
+        // Remove the cached return type and clear the variables
+        // and parameters declared in the function.
+        currentFunctionReturnType = null;
         variableEnv.exitScope();
 
-        return functionReturnType;
+        // Nothing needs to be returned here
+        return null;
     }
 
 	public Type visit(Identifier node) throws SemanticException {
@@ -416,8 +423,32 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         return null;
     }
 
-	public Type visit(ReturnStatement node) throws SemanticException {
-        return null; // TODO
+	public Type visit(ReturnStatement node) throws ASTVisitorException {
+        assert currentFunctionReturnType != null;
+        Type expectedType = currentFunctionReturnType;
+        
+        boolean hasReturnExpression = node.returnExpression.isPresent();
+
+        if (hasReturnExpression) {
+            var expressionNode = node.returnExpression.get();
+            var expressionType = expressionNode.accept(this);
+
+            if (isVoid(expectedType)) {
+                // Returning expression from void function
+               throw new SemanticException("Cannot return expression from 'void' function", expressionNode);
+            }
+            else if (!expectedType.equals(expressionType)) {
+                // Returning expression of incorrect type
+                throw new TypeMismatchException(expectedType, expressionType, expressionNode);
+            }
+        }
+        else if (!isVoid(expectedType)) {
+            // Empty return statement in a non-void function.
+            throw new SemanticException("Return statement in non-void function must not be empty", node);
+        }
+
+        // No need to return anything for a return statement
+        return null;
     }
 
 	public Type visit(SimpleTypeNode node) throws SemanticException {

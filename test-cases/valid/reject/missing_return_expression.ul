@@ -1,0 +1,7 @@
+void main() {
+    foo();
+}
+
+int foo() {
+    return; // Cannot have empty return in non-void function
+}

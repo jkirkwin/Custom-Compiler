@@ -1,0 +1,11 @@
+void main() {
+    foo();
+}
+
+string foo() {
+    return bar(); // Returning a void "value"
+}
+
+void bar() {
+    ;
+}

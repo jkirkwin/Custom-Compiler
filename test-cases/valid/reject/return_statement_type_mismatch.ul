@@ -1,0 +1,7 @@
+void main() {
+    foo();
+}
+
+boolean foo() {
+    return 'f'; // Mismatched return types
+}

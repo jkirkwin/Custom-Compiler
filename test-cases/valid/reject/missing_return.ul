@@ -1,7 +1,0 @@
-void main() {
-
-}
-
-int foo() {
-    println "I forgot to return a value";
-}
