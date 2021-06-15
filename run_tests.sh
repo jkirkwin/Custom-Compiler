@@ -28,11 +28,17 @@ fi
 TEST_CASE_FOLDER="test-cases"
 
 VALID_DIR="${TEST_CASE_FOLDER}/valid" 
-VALID_UL_FILES=$(find $VALID_DIR -type f -name "*.ul")
+
+REJECT_DIR="${VALID_DIR}/reject"
+VALID_REJECT_UL_FILES=$(find $REJECT_DIR -type f -name "*.ul")
+
+ACCEPT_DIR="${VALID_DIR}/accept"
+VALID_ACCEPT_UL_FILES=$(find $ACCEPT_DIR -type f -name "*.ul")
 
 INVALID_DIR="${TEST_CASE_FOLDER}/invalid"
 INVALID_UL_FILES=$(find $INVALID_DIR -type f -name "*.ul")
 
+# Other constants
 JAVA_COMMAND="java -ea Compiler"
 
 # Counters to be updated on each test
@@ -74,8 +80,13 @@ for i in $INVALID_UL_FILES; do
     run_test $i 1
 done
 
-echo -e "\n==== Valid files =====\n"
-for i in $VALID_UL_FILES; do
+echo -e "\n==== Valid files (Rejected) =====\n"
+for i in $VALID_REJECT_UL_FILES; do
+    run_test $i 1
+done
+
+echo -e "\n==== Valid files (Accepted) =====\n"
+for i in $VALID_ACCEPT_UL_FILES; do
     run_test $i 0
 done
 
