@@ -127,20 +127,33 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         return null;
     }
 
-	public Type visit(ASTNode node) throws SemanticException {
+	public Type visit(ASTNode node) {
         // This should never execute. 
         // Only ASTNode subclasses should be involved in the double dispatch.
         throw new UnsupportedOperationException("Error: Visitor invoked with abstract base class");
     }
 
-	public Type visit(BinaryOperationExpression node) throws SemanticException {
+	public Type visit(BinaryOperationExpression node) {
         // This should never execute. 
         // Only BinaryOperationExpression subclasses should be involved in the double dispatch.
         throw new UnsupportedOperationException("Error: Visitor invoked with abstract base class");
     }
 
-	public Type visit(Block node) throws SemanticException {
-        return null; // TODO
+	public Type visit(Block node) throws ASTVisitorException {
+        // Since our language is so simple, we don't actually need to do this, but in a
+        // more complex language that supports variable declarations in arbitrarily 
+        // nested scopes, we would.
+        variableEnv.enterScope();
+
+        // Type check all statements in the block
+        for (var statement : node.statements) {
+            statement.accept(this);
+        }
+
+        variableEnv.exitScope();
+
+        // There is nothing to return here.
+        return null; 
     }
 
 	public Type visit(BooleanLiteral node) {
@@ -193,7 +206,7 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
 
         // Formals must have unique names.
         if (variableEnv.existsInCurrentScope(name)) {
-            throw new SemanticException("Duplicate formal parameter name '" + name + "' in function declaration", id);
+            throw new SemanticException("Duplicate formal parameter '" + name + "' in function declaration", id);
         }
 
         // Add the formal parameter to the current scope and return its
@@ -221,7 +234,7 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
 
         // The function must exist
         if (!functionEnv.exists(functionName)) {
-            throw new SemanticException("No function named '" + functionName + "' is defined", node);
+            throw new SemanticException("No function '" + functionName + "' is defined", node);
         }
 
         FunctionDecl functionDeclaration = functionEnv.lookup(functionName); 
@@ -232,7 +245,7 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         int actualArgCount = args.size();
         if (expectedArgCount != actualArgCount) {
             String message = "Function '" + functionName + "' requires " + expectedArgCount + 
-                             "arguments but was called with " + actualArgCount;
+                             " argument(s) but was called with " + actualArgCount;
             throw new SemanticException(message, node);
         }
         
@@ -451,11 +464,11 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         return null;
     }
 
-	public Type visit(SimpleTypeNode node) throws SemanticException {
+	public Type visit(SimpleTypeNode node) {
         return node.type;
     }
 
-	public Type visit(Statement node) throws SemanticException {
+	public Type visit(Statement node) {
         // This should never execute. 
         // Only Statement subclasses should be involved in the double dispatch.
         throw new UnsupportedOperationException("Error: Visitor invoked with abstract base class");
@@ -499,7 +512,7 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
 
         // Variables are not allowed to shadow function parameters or other variables.
         if (variableEnv.existsInCurrentScope(name)) {
-            throw new SemanticException("Duplicate variable name '" + name + "' encountered", id);
+            throw new SemanticException("Duplicate variable '" + name + "'", id);
         }
         
         variableEnv.bind(name, type);
