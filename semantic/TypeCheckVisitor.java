@@ -13,6 +13,30 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         return VoidType.INSTANCE.equals(type);
     }
 
+    private static boolean isInt(Type type) {
+        return IntegerType.INSTANCE.equals(type);
+    }
+
+    private static boolean isFloat(Type type) {
+        return FloatType.INSTANCE.equals(type);
+    }
+
+    private static boolean isChar(Type type) {
+        return CharacterType.INSTANCE.equals(type);
+    }
+
+    private static boolean isString(Type type) {
+        return StringType.INSTANCE.equals(type);
+    }
+
+    private static boolean isBoolean(Type type) {
+        return BooleanType.INSTANCE.equals(type);
+    }
+
+    private static boolean isArray(Type type) {
+        return type instanceof ArrayType;
+    }
+
     private final Environment<String, Type> variableEnv;
     private final Environment<String, FunctionDecl> functionEnv;
 
@@ -21,19 +45,30 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         functionEnv = new Environment<String, FunctionDecl>();
     }
 
-    public Type visit(AddExpression node) throws SemanticException {
-        return null; // TODO
+    public Type visit(AddExpression node) throws ASTVisitorException {
+        Type leftType = node.left.accept(this);
+        Type rightType = node.right.accept(this);
+        
+        // Addition supported for simple types except boolean and void
+        if (isVoid(leftType) || isBoolean(leftType) || isArray(leftType)) {
+            throw new InvalidOperandTypeException(leftType, "+", node.left);
+        }
+        else if (!leftType.equals(rightType)) {
+            throw new TypeMismatchException(leftType, rightType, node.right);
+        }
+
+        return leftType;
     }
 
 	public Type visit(ArrayAssignmentStatement node) throws ASTVisitorException {
         // Check the array id exists and get its underlying type
         Type arrayType = node.arrayId.accept(this);
-        assert arrayType instanceof ArrayType;
+        assert isArray(arrayType);
         SimpleType expectedType = ((ArrayType)arrayType).simpleType;
 
         // Check that the index expression yields an integer
         Type indexType = node.indexExpression.accept(this);
-        if (!IntegerType.INSTANCE.equals(indexType)) {
+        if (!isInt(indexType)) {
             throw new SemanticException("Cannot use '" + indexType.toString() + "' as array index", node.indexExpression);
         }
 
@@ -75,11 +110,15 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
     }
 
 	public Type visit(ASTNode node) throws SemanticException {
-        return null; // TODO
+        // This should never execute. 
+        // Only ASTNode subclasses should be involved in the double dispatch.
+        throw new UnsupportedOperationException("Error: Visitor invoked with abstract base class");
     }
 
 	public Type visit(BinaryOperationExpression node) throws SemanticException {
-        return null; // TODO
+        // This should never execute. 
+        // Only BinaryOperationExpression subclasses should be involved in the double dispatch.
+        throw new UnsupportedOperationException("Error: Visitor invoked with abstract base class");
     }
 
 	public Type visit(Block node) throws SemanticException {
@@ -94,12 +133,25 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         return CharacterType.INSTANCE;
     }
 
-	public Type visit(EqualityExpression node) throws SemanticException {
-        return null; // TODO
+	public Type visit(EqualityExpression node) throws ASTVisitorException {
+        Type leftType = node.left.accept(this);
+        Type rightType = node.right.accept(this);
+        
+        // Equality supported for simple, non-void types
+        if (isVoid(leftType) || isArray(leftType)) {  // TODO Should we allow array equality comparisons?
+            throw new InvalidOperandTypeException(leftType, "==", node.left);
+        }
+        else if (!leftType.equals(rightType)) {
+            throw new TypeMismatchException(leftType, rightType, node.right);
+        }
+
+        return BooleanType.INSTANCE;
     }
 
-	public Type visit(Expression node) throws SemanticException {
-        return null; // TODO
+	public Type visit(Expression node) {
+        // This should never execute. 
+        // Only Expression subclasses should be involved in the double dispatch.
+        throw new UnsupportedOperationException("Error: Visitor invoked with abstract base class");
     }
 
 	public Type visit(ExpressionStatement node) throws ASTVisitorException {
@@ -193,9 +245,6 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
 
 	public Type visit(Function node) throws ASTVisitorException {
 
-
-        // TODO Check that variables are defined before being used
-
         // TODO Check that the declaration type matches the return type - this should be done when we hit a return statement.
         //      May need to keep some state to indicate which function we're currently in. That would also help with checking 
         //      parameters vs local variables.
@@ -230,7 +279,7 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
 	public Type visit(IfStatement node) throws ASTVisitorException {
         // The type of the condition expression must be a boolean
         Type conditionType = node.condition.accept(this);
-        if (!BooleanType.INSTANCE.equals(conditionType)) {
+        if (!isBoolean(conditionType)) {
             throw new TypeMismatchException(BooleanType.INSTANCE, conditionType, node.condition);
         }
 
@@ -248,23 +297,45 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         return IntegerType.INSTANCE;
     }
 
-	public Type visit(LessThanExpression node) throws SemanticException {
-        return null; // TODO
+	public Type visit(LessThanExpression node) throws ASTVisitorException {
+        Type leftType = node.left.accept(this);
+        Type rightType = node.right.accept(this);
+        
+        // Comparison supported for simple types except boolean and void
+        if (isVoid(leftType) || isBoolean(leftType) || isArray(leftType)) { 
+            throw new InvalidOperandTypeException(leftType, "<", node.left);
+        }
+        else if (!leftType.equals(rightType)) {
+            throw new TypeMismatchException(leftType, rightType, node.right);
+        }
+
+        return BooleanType.INSTANCE;
     }
 
-	public Type visit(MultiplyExpression node) throws SemanticException {
-        return null; // TODO
+	public Type visit(MultiplyExpression node) throws ASTVisitorException {
+        Type leftType = node.left.accept(this);
+        Type rightType = node.right.accept(this);
+        
+        // Multiplication supported only for integers and floats
+        if (!isInt(leftType) && !isFloat(leftType)) {
+            throw new InvalidOperandTypeException(leftType, "*", node.left);
+        }
+        else if (!leftType.equals(rightType)) {
+            throw new TypeMismatchException(leftType, rightType, node.right);
+        }
+
+        return leftType;
     }
 
-	public Type visit(ParenExpression node) throws SemanticException {
-        return null; // TODO
+	public Type visit(ParenExpression node) throws ASTVisitorException {
+        return node.expression.accept(this);
     }
 
     private boolean isPrintableType(Type t) {
         // We allow printing of all simple, non-void types.
         return t != null &&
                !isVoid(t) &&
-               !(t instanceof ArrayType);
+               !isArray(t);
     }
 
 	public Type visit(PrintlnStatement node) throws ASTVisitorException {
@@ -339,15 +410,28 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
     }
 
 	public Type visit(Statement node) throws SemanticException {
-        return null; // TODO
+        // This should never execute. 
+        // Only Statement subclasses should be involved in the double dispatch.
+        throw new UnsupportedOperationException("Error: Visitor invoked with abstract base class");
     }
 
 	public Type visit(StringLiteral node) {
         return StringType.INSTANCE;
     }
 
-	public Type visit(SubtractExpression node) throws SemanticException {
-        return null; // TODO
+	public Type visit(SubtractExpression node) throws ASTVisitorException {
+        Type leftType = node.left.accept(this);
+        Type rightType = node.right.accept(this);
+        
+        // Subtraction supported for integers, floats, and character types
+        if (!isInt(leftType) && !isFloat(leftType) && !isChar(leftType)) {
+            throw new InvalidOperandTypeException(leftType, "-", node.left);
+        }
+        else if (!leftType.equals(rightType)) {
+            throw new TypeMismatchException(leftType, rightType, node.right);
+        }
+
+        return leftType;
     }
 
 	public Type visit(TypeNode node) {
@@ -380,7 +464,7 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
 	public Type visit(WhileStatement node) throws ASTVisitorException {
         // The type of the condition expression must be a boolean
         Type conditionType = node.condition.accept(this);
-        if (!BooleanType.INSTANCE.equals(conditionType)) {
+        if (!isBoolean(conditionType)) {
             throw new TypeMismatchException(BooleanType.INSTANCE, conditionType, node.condition);
         }
 

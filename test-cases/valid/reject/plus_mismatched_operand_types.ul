@@ -1,0 +1,3 @@
+void main() {
+    println "ABC" + 2.0; // LHS and RHS types must match.
+}

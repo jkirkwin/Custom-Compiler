@@ -1,0 +1,3 @@
+void main() {
+    println 1 == 2.0; // LHS and RHS types must match.
+}

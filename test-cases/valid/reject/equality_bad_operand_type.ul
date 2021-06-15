@@ -1,0 +1,7 @@
+void main() {
+    print foo() == 4; // Can't use void operand
+}
+
+void foo() {
+
+}

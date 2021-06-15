@@ -1,0 +1,3 @@
+void main() {
+    println 'c' < "d"; // LHS and RHS types must match.
+}

@@ -1,0 +1,3 @@
+void main() {
+    print 'c' * 4; // This isn't python
+}

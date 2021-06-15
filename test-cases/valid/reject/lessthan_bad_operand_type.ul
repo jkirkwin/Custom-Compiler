@@ -1,0 +1,11 @@
+void main() {
+    print foo() < bar(); // Can't compare void types
+}
+
+void foo() {
+
+}
+
+void bar() {
+
+}
