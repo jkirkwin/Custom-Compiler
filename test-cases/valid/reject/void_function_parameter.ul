@@ -1,7 +1,12 @@
 void main() {
-    print_stuff();
+    print_stuff(foo());
 }
 
 int print_stuff(void v) {
     print (v);
 }
+
+void foo() {
+    print "Void returning function called";
+}
+
