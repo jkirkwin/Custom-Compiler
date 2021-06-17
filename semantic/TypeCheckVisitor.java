@@ -169,7 +169,7 @@ public class TypeCheckVisitor implements ASTVisitor<Type>  {
         Type rightType = node.right.accept(this);
         
         // Equality supported for simple, non-void types
-        if (isVoid(leftType) || isArray(leftType)) {  // TODO Should we allow array equality comparisons?
+        if (isVoid(leftType) || isArray(leftType)) { 
             throw new InvalidOperandTypeException(leftType, "==", node.left);
         }
         else if (!leftType.equals(rightType)) {
