@@ -1,4 +1,5 @@
 import ast.*;
+import ir.*;
 import java.io.*;
 import org.antlr.runtime.*;
 import semantic.*;
@@ -41,8 +42,14 @@ public class Compiler {
 		try {
 			Program program = parser.program();
             
+			// Ensure the type system and language semantics are respected.
             TypeCheckVisitor semanticVisitor = new TypeCheckVisitor();
             semanticVisitor.visit(program);
+
+			// Create the intermediate representation.
+			IRVisitor irVisitor = new IRVisitor();
+			irVisitor.visit(program);
+
         }
         catch (RecognitionException e )	{
     		// A lexical or parsing error occured.
