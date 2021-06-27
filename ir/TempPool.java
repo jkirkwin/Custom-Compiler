@@ -3,8 +3,10 @@ package ir;
 import type.Type;
 
 /**
- * A pool of (@Link Temporary} instances.
- * TODO Improve docstring once interface is fleshed out
+ * A pool of (@Link Temporary} instances. Encapsulates the management
+ * of the index space outside of the Temporary classes themselves and 
+ * provides mechanisms for acquiring and returning temporaries of each
+ * sub-type.
  */
 public interface TempPool {
 
@@ -15,22 +17,24 @@ public interface TempPool {
     public static final int MAX_TEMPORARIES = 65535; 
 
     /**
-     * Allocates and returns a new temporary in the 
-     * parameter group with the given type.
+     * Allocates and returns a new temporary in the parameter group
+     * with the given type. Adds the provided string to the temporary
+     * for diagnostic purposes.
      */
-    public ParamTemp acquireTemporaryParam(Type type) throws TemporaryOverflowException;
+    public ParamTemp acquireParam(Type type, String sourceString) throws TemporaryOverflowException;
 
     /**
-     * Allocates and returns a new temporary in the 
-     * locals group with the given type.
+     * Allocates and returns a new temporary in the locals group
+     * with the given type. Adds the provided string to the temporary
+     * for diagnostic purposes.
      */
-    public LocalTemp acquireTemporaryLocal(Type type) throws TemporaryOverflowException;
+    public LocalTemp acquireLocal(Type type, String sourceString) throws TemporaryOverflowException;
 
     /**
      * Allocates and returns a new temporary which is neither a
      * parameter or local.
      */
-    public TrueTemp acquireTemporary(Type type) throws TemporaryOverflowException;
+    public TrueTemp acquireTemp(Type type) throws TemporaryOverflowException;
 
     /**
      * Release a temporary. After this, the returned temporary may be 

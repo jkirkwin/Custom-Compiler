@@ -2,7 +2,7 @@
 
 GNAME= UnnamedLanguage
 GSRC= $(GNAME).g
-PACKAGES= ast type semantic ir
+PACKAGES= common ast type semantic ir
 
 JAVAC_OPTS= -Xlint:unchecked
 JAVAC= javac $(JAVAC_OPTS)
@@ -22,17 +22,21 @@ ast: type ./ast/*.java
 type: ./type/*.java
 	$(JAVAC) type/*.java
 
-semantic: ast type semantic/*.java
+semantic: ast type common semantic/*.java
 	$(JAVAC) semantic/*.java
 
-ir: ast type ir/*.java
+ir: ast type common ir/*.java
 	$(JAVAC) ir/*.java
+
+common: common/*.java
+	$(JAVAC) common/*.java
 
 compiler: grammar $(PACKAGES) Compiler.java
 	$(JAVAC) Compiler.java
 
 unit_test: compiler
 	java -ea semantic.Environment
+	java -ea ir.TempFactory
 
 clean:
 	rm -f *.class $(GNAME)*.java $(GNAME).tokens 

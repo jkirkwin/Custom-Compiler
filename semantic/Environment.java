@@ -1,5 +1,6 @@
 package semantic;
 
+import common.TestUtils;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
@@ -132,22 +133,11 @@ public class Environment<K, V> {
         bindingStack.push(new EnvironmentEntry<K, V> (key, value));
     }
 
-    // Answers whether assertions are enabled at runtime.
-    private static boolean checkAssertsEnabled() {
-        boolean assertsEnabled = false;
-        assert assertsEnabled = true; // Intentional side effect
-        return assertsEnabled;
-    }
-
     public static void main(String[] args) {
         // Unfortunately the UVic linux servers don't have JUnit installed so we're going
         // to test just using assertions for now.
 
-        System.out.println("Running smoke tests for Environment.java.");
-        if (!checkAssertsEnabled()) {
-            System.err.println("ERROR: Assertions are disabled.");
-            System.exit(1);
-        }
+        TestUtils.startTestRun("Environment");
 
         Environment<String, Integer> env = new Environment<String, Integer>();
 
@@ -215,6 +205,6 @@ public class Environment<K, V> {
         assert env.lookup("Foo") == 1; // Original value should be restored
         assert env.lookup("Bar") == 2;
 
-        System.out.println("Tests passed.");
+        TestUtils.finishTestRun(true);
     }
 }
