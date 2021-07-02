@@ -12,4 +12,8 @@ public class FloatType extends SimpleType {
         return "float";
     }
 
+    @Override
+    public String toIRString() {
+        return "F";
+    }
 }

@@ -12,4 +12,8 @@ public class VoidType extends SimpleType {
     private VoidType() {
     }
 
+    @Override
+    public String toIRString() {
+        return "V";
+    }
 }

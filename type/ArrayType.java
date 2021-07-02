@@ -16,6 +16,11 @@ public class ArrayType extends Type {
     }
 
     @Override
+    public String toIRString() {
+        return "A" + simpleType.toIRString();
+    }
+
+    @Override
     public boolean equals(Object other) {
         if (other != null && other instanceof ArrayType) {
             ArrayType otherArrayType = (ArrayType) other;

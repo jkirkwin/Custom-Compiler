@@ -12,4 +12,8 @@ public class StringType extends SimpleType {
         return "string";
     }
 
+    @Override
+    public String toIRString() {
+        return "U";
+    }
 }

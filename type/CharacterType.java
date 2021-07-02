@@ -12,4 +12,9 @@ public class CharacterType extends SimpleType {
         return "char";
     }
 
+    @Override
+    public String toIRString() {
+        return "C";
+    }
+
 }

@@ -11,5 +11,9 @@ public class IntegerType extends SimpleType {
     public String toString() {
         return "int";
     }
-
+    
+    @Override
+    public String toIRString() {
+        return "I";
+    }
 }

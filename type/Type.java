@@ -9,7 +9,7 @@ public abstract class Type {
      * Returns a short string representation of the type for use
      * during intermediate code generation.
      */
-    // public abstract String toShortString();
+    public abstract String toIRString(); 
 
     public abstract boolean equals(Object o);
 
