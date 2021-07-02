@@ -2,6 +2,8 @@ package ir;
 
 import common.TestUtils;
 import type.*;
+import java.util.Collections;
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -31,8 +33,6 @@ public class TempFactory implements TempPool {
         TRUE_TEMPORARIES
     }
 
-    // TODO Is this vector actually necessary? Right now we have
-    // no way to query its contents and it is write-only.
     private final Vector<Temporary> temporaries;
     private TempGroups tempGroup;
 
@@ -114,6 +114,10 @@ public class TempFactory implements TempPool {
         paramCount = 0;
         localCount = 0;
         trueTempCount = 0;
+    }
+
+    public List<Temporary> getAllTemps() {
+        return Collections.unmodifiableList(temporaries);
     }
 
     public static void main(String[] args) throws Exception {

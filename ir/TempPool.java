@@ -1,5 +1,6 @@
 package ir;
 
+import java.util.List;
 import type.Type;
 
 /**
@@ -47,4 +48,9 @@ public interface TempPool {
      * been acquired and no types are known for any temporary id.
      */
     public void clear();
+
+    /**
+     * Returns an immutable list of all the temporaries the pool has allocated.
+     */
+    public List<Temporary> getAllTemps();
 }
