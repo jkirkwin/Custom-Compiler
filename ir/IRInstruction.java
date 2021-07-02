@@ -1,8 +1,15 @@
 package ir;
 
 /**
- * TODO Document
+ * A marker interface which all IR instruction classes
+ * must implement so that they may be stored together. 
  */
 public interface IRInstruction {
-    // TODO Add stuff here. Maybe make it an abstract class? Not sure what common functionality exists here.
+
+    /**
+     * Generates a textual representation of the given instruction, 
+     * ending in a semicolon.
+     */
+    public String toString();
+
 }
