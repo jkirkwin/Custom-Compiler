@@ -6,7 +6,7 @@ import type.*;
  * Represents a constant in the IR. There are a fixed number of possible
  * contant types, and a factory method is provided for each one.
  */
-public class IRConstant<T> {
+public class IRConstant<T> implements IRAssignableExpression {
 
     public static IRConstant<Boolean> forBoolean(boolean value) {
         return new IRConstant<Boolean>(type.BooleanType.INSTANCE, value);

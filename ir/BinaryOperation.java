@@ -6,7 +6,7 @@ import type.*;
  * Represents a typed operator with two operands of that type. The set
  * of possible operators is: +, -, /, *, rem, <, <=, >, >=, ==, and !=
  */
-public class BinaryOperation {
+public class BinaryOperation implements IRAssignableExpression {
 
     public static enum OperatorGroups {
         ARITHMETIC,

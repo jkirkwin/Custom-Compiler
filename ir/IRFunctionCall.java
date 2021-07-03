@@ -3,7 +3,7 @@ package ir;
 import java.util.ArrayList;
 import java.util.List;
 
-public class IRFunctionCall {
+public class IRFunctionCall implements IRAssignableExpression {
 
     private static String getArgumentString(List<Temporary> args) {
         String s = "(";

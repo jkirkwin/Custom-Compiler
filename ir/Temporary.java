@@ -23,7 +23,7 @@ import type.Type;
  *  3.  Finally, the remaining "true" temporaries take up the index 
  *      space above p + l, and they are denoted T_i.
  */
-public abstract class Temporary {
+public abstract class Temporary implements IRAssignableExpression {
 
     private final int localId;
     private final int groupOffset;

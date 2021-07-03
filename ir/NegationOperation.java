@@ -4,7 +4,7 @@ import type.*;
 
 public class NegationOperation {
 
-    private static enum NegationTypes {
+    private static enum NegationTypes implements IRAssignableExpression {
         BITWISE("!"),
         NUMERIC("-");
 
