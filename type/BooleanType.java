@@ -14,6 +14,6 @@ public class BooleanType extends SimpleType {
 
     @Override
     public String toIRString() {
-        return "B";
+        return "Z";
     }
 }
