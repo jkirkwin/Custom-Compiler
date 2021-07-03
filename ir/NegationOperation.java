@@ -76,6 +76,6 @@ public class NegationOperation {
     }
 
     public String toString() {
-        return negationType.toString() + operandType.toIRString();
+        return operandType.toIRString() + negationType.toString();
     }
 }

@@ -20,6 +20,10 @@ public final class TypeUtils {
         return t == FloatType.INSTANCE;
     }
 
+    public static boolean isVoid(Type t) {
+        return t == VoidType.INSTANCE;
+    }
+
     public static boolean isString(Type t) {
         return t == StringType.INSTANCE;
     }
