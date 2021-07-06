@@ -17,7 +17,7 @@ public class Compiler {
 
     public static void main (String[] args) throws IOException {
 		
-		if (args.length == 0 ) {
+		if (args.length == 0) {
 			System.out.println("Usage: Compiler filename.ul");
 			return;
 		}
@@ -50,6 +50,9 @@ public class Compiler {
 			IRVisitor irVisitor = new IRVisitor();
 			irVisitor.visit(program);
 
+			System.out.println(irVisitor.buildProgram());
+
+			// TODO create a .ir file and use jasmin to create a class file
         }
         catch (RecognitionException e )	{
     		// A lexical or parsing error occured.
