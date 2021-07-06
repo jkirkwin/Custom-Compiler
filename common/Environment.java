@@ -1,6 +1,5 @@
-package semantic;
+package common;
 
-import common.TestUtils;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
@@ -8,7 +7,7 @@ import java.util.NoSuchElementException;
 /**
  * Represents an "environment" or "Symbol Table" used to track
  * the currently available keys and their bound values at a given
- * point during the type checking and semantic analysis processes.
+ * point during the type checking/semantic analysis and IR generation.
  * 
  * @param <K> The Key type used to identify envrionment entries.
  *            This type may be user-defined, but must have the .equals

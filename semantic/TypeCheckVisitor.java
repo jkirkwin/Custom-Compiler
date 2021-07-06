@@ -1,6 +1,7 @@
 package semantic;
 
 import ast.*;
+import common.Environment;
 import type.*;
 
 /**

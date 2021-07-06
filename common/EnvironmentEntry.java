@@ -1,4 +1,4 @@
-package semantic;
+package common;
 
 /**
  * Represents a key-value binding present in an @link{Environment}. Each entry
