@@ -26,3 +26,7 @@ hs_err_pid*
 .antlr
 UnnamedLanguage*.java
 UnnamedLanguage.tokens
+
+# Temporary files
+temp
+tmp
