@@ -81,17 +81,16 @@ public class IRFunction {
         // Add function signature
         sb.append("FUNC ")
           .append(name) 
-          .append(' ')
           .append(type.toString())
           .append("\n{\n");
 
         // Add temporary declarations
         for (var temp : temps) {
-            sb.append("\tTEMP")
+            sb.append("\tTEMP ")
               .append(temp.globalIndex())
               .append(':')
               .append(temp.type().toIRString())
-              .append('\n');
+              .append(";\n");
         }
 
         // Add instructions

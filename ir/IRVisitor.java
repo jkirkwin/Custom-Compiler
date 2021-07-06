@@ -51,6 +51,11 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
     }
 
 	public Temporary visit(AssignmentStatement node) throws ASTVisitorException {
+        // TODO If we're assigning a constant, need to be careful to avoid infinite recursion
+        // Just visit the node's expression to get a temp and then check if the right hand side is an IRConstant of the appropriate type. 
+        // If so, then just return that temp. 
+        // Otherwise, make your own assignment instruction.
+
         throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
     }
 
@@ -107,7 +112,16 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
     }
 
 	public Temporary visit(FunctionBody node) throws ASTVisitorException {
-        return null; // TODO Implement. Exception omitted so we can actually run the code.
+        for (var varDecl : node.declarations) {
+            varDecl.accept(this);
+        }
+
+        for (var stmt : node.statements) {
+            stmt.accept(this);
+        }
+        // TODO Do we need to add a return statement to the end of non-void functions? What if there's already one (or multiple) there?
+
+        return null;
     }
 
 	public Temporary visit(FunctionCall node) throws ASTVisitorException {
@@ -138,13 +152,15 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
         tempPool.clear();
         currentIRFunctionBuilder = new IRFunction.Builder();
 
-        // Visit the function components and add the resulting function to 
-        // the program
+        // Visit the function components and build up the function
         variableEnv.enterScope();
         node.declaration.accept(this);
         node.body.accept(this);
         variableEnv.exitScope();
 
+        // Add all the temporaries that were allocated to the function 
+        // builder, build the function instance, and add it to the program.
+        currentIRFunctionBuilder.withTemps(tempPool.getAllTemps());
         programBuilder.addFunction(currentIRFunctionBuilder.build());
 
         // Nothing meaningful to return
@@ -176,11 +192,19 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
     }
 
 	public Temporary visit(PrintlnStatement node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+        Temporary expressionResult = node.expression.accept(this);
+        var instruction = new PrintlnInstruction(expressionResult);
+        currentIRFunctionBuilder.addInstruction(instruction);
+
+        return null; // Nothing meaningful to return
     }
 
 	public Temporary visit(PrintStatement node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+        Temporary expressionResult = node.expression.accept(this);
+        var instruction = new PrintInstruction(expressionResult);
+        currentIRFunctionBuilder.addInstruction(instruction);
+
+        return null; // Nothing meaningful to return
     }
 
 	public Temporary visit(Program node) throws ASTVisitorException {
@@ -206,8 +230,16 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
         throw new UnsupportedOperationException("Error: Visitor invoked with abstract base class");
     }
 
-	public Temporary visit(StringLiteral node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+	public Temporary visit(StringLiteral node) throws TemporaryOverflowException {
+        // Get a temporary to hold the string. This will be returned.
+        var temp = tempPool.acquireTemp(StringType.INSTANCE);
+
+        // Generate a constant-assignment instruction and add it to the function
+        var stringConstant = IRConstant.forString(node.value);
+        var assignmentInstruction = new TemporaryAssignmentInstruction(temp, stringConstant);
+        currentIRFunctionBuilder.addInstruction(assignmentInstruction);
+
+        return temp;
     }
 
 	public Temporary visit(SubtractExpression node) throws ASTVisitorException {
@@ -219,8 +251,14 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
         throw new UnsupportedOperationException("Error: Visitor invoked with abstract base class");
     }
 
-	public Temporary visit(VariableDeclaration node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+	public Temporary visit(VariableDeclaration node) throws TemporaryOverflowException {
+        Type varType = node.typeNode.type;
+        Identifier id = node.id;
+        String varName = id.value;
+
+        var temp = tempPool.acquireLocal(varType, varName);
+        variableEnv.bind(id, temp);
+        return temp;
     }
 
 	public Temporary visit(WhileStatement node) throws ASTVisitorException {

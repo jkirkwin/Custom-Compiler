@@ -51,6 +51,12 @@ public class IRConstant<T> implements IRAssignableExpression {
         if (value instanceof Boolean) {
             return value.toString().toUpperCase();
         }
+        else if (value instanceof String) {
+            return '"' + value.toString() + '"';
+        }
+        else if (value instanceof Character) {
+            return "'" + value.toString() + "'";
+        }
         else {
             return value.toString();
         }
