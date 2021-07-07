@@ -59,8 +59,8 @@ public abstract class Temporary implements IRAssignableExpression {
     }
 
     /**
-     * The textual representation of a reference to the temporary using 
-     * group-based indexing.
+     * The textual representation of a reference to the temporary global 
+     * indexing.
      */
     public abstract String toString();
 

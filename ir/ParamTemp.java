@@ -23,7 +23,7 @@ public class ParamTemp extends Temporary {
     }
 
     public String toString() {
-        return "P" + localIndex();
+        return "T" + globalIndex();
     }
     
 }

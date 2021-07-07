@@ -23,7 +23,7 @@ public class LocalTemp extends Temporary {
     }
 
     public String toString() {
-        return "L" + localIndex();
+        return "T" + globalIndex();
     }
     
 }
