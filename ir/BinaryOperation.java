@@ -126,6 +126,6 @@ public class BinaryOperation implements IRAssignableExpression {
     }
 
     public String toString() {
-        return left.toString() + ' ' + operationType().toString() + operator.toString() + ' ' + right;
+        return left.toString() + ' ' + operationType().toIRString() + operator.toString() + ' ' + right;
     }
 }

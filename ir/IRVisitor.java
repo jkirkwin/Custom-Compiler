@@ -36,8 +36,26 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
         functionEnv = new Environment<String, Type>();
     }
 
+    /**
+     * Helper function which generates IR code for a binary operation.
+     */
+    private Temporary visitBinaryExpression(BinaryOperation.Operators operator, 
+                                            BinaryOperationExpression node) 
+                                            throws ASTVisitorException {
+        Temporary left = node.left.accept(this);
+        Temporary right = node.right.accept(this);
+        assert left.type().equals(right.type());
+
+        var operation = BinaryOperation.getOperation(operator, left, right);
+        Temporary destination = tempPool.acquireTemp(operation.resultType());
+        var assignInstruction = new TemporaryAssignmentInstruction(destination, operation);
+        currentIRFunctionBuilder.addInstruction(assignInstruction);
+
+        return destination;        
+    }
+
     public Temporary visit(AddExpression node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+        return visitBinaryExpression(BinaryOperation.Operators.PLUS, node);
     }
 
 	public Temporary visit(ArrayAssignmentStatement node) throws ASTVisitorException {
@@ -109,7 +127,7 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
     }
 
 	public Temporary visit(EqualityExpression node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+        return visitBinaryExpression(BinaryOperation.Operators.EQUAL, node);        
     }
 
 	public Temporary visit(Expression node) throws ASTVisitorException {
@@ -248,11 +266,11 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
     }
 
 	public Temporary visit(LessThanExpression node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+        return visitBinaryExpression(BinaryOperation.Operators.LESS, node);        
     }
 
 	public Temporary visit(MultiplyExpression node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+        return visitBinaryExpression(BinaryOperation.Operators.MULTIPLY, node);        
     }
 
 	public Temporary visit(ParenExpression node) throws ASTVisitorException {
@@ -331,7 +349,7 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
     }
 
 	public Temporary visit(SubtractExpression node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+        return visitBinaryExpression(BinaryOperation.Operators.MINUS, node); 
     }
 
 	public Temporary visit(TypeNode node) throws ASTVisitorException {
