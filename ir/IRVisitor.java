@@ -53,14 +53,21 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
     }
 
 	public Temporary visit(AssignmentStatement node) throws ASTVisitorException {
-        // TODO If we're assigning a constant, need to be careful to avoid infinite recursion
-        // Just visit the node's expression to get a temp and then check if the right hand side is an IRConstant of the appropriate type. 
-        // If so, then just return that temp. 
-        // Otherwise, make your own assignment instruction.
-        
-        // Alternatively: Don't be weird and just allow the duplicated temporary? Pretty sure we can make this work without any crazy infinite recursion.
+        String variableName = node.id.value;
+        Expression expression = node.value; 
 
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+        // Evaluate the expression, likely but not necessarilty creating a
+        // new temporary, and add an assignment instruction from that 
+        // temporary to the one used for the variable in question.
+        // This yields some duplicate assignment instructions that could 
+        // be collapsed in some cases, but is very simple and such 
+        // optimizations may be done elsewhere.
+        Temporary expressionResult = expression.accept(this);
+        Temporary destination = variableEnv.lookup(variableName);
+        var instruction = new TemporaryAssignmentInstruction(destination, expressionResult);
+        currentIRFunctionBuilder.addInstruction(instruction);
+
+        return null; // Nothing meaningful to return here.
     }
 
 	public Temporary visit(ASTNode node) throws ASTVisitorException {
@@ -77,12 +84,28 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
         throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
     }
 
-	public Temporary visit(BooleanLiteral node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+	public Temporary visit(BooleanLiteral node) throws TemporaryOverflowException {
+        // Get a temporary to hold the string. This will be returned.
+        var temp = tempPool.acquireTemp(BooleanType.INSTANCE);
+
+        // Generate a constant-assignment instruction and add it to the function
+        var booleanConstant = IRConstant.forBoolean(node.value);
+        var assignmentInstruction = new TemporaryAssignmentInstruction(temp, booleanConstant);
+        currentIRFunctionBuilder.addInstruction(assignmentInstruction);
+
+        return temp;
     }
 
-	public Temporary visit(CharacterLiteral node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+	public Temporary visit(CharacterLiteral node) throws TemporaryOverflowException {
+        // Get a temporary to hold the string. This will be returned.
+        var temp = tempPool.acquireTemp(CharacterType.INSTANCE);
+
+        // Generate a constant-assignment instruction and add it to the function
+        var charConstant = IRConstant.forCharacter(node.value);
+        var assignmentInstruction = new TemporaryAssignmentInstruction(temp, charConstant);
+        currentIRFunctionBuilder.addInstruction(assignmentInstruction);
+
+        return temp;
     }
 
 	public Temporary visit(EqualityExpression node) throws ASTVisitorException {
@@ -98,8 +121,16 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
         throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
     }
 
-	public Temporary visit(FloatLiteral node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+	public Temporary visit(FloatLiteral node) throws TemporaryOverflowException {
+        // Get a temporary to hold the string. This will be returned.
+        var temp = tempPool.acquireTemp(FloatType.INSTANCE);
+
+        // Generate a constant-assignment instruction and add it to the function
+        var floatConstant = IRConstant.forFloat(node.value);
+        var assignmentInstruction = new TemporaryAssignmentInstruction(temp, floatConstant);
+        currentIRFunctionBuilder.addInstruction(assignmentInstruction);
+
+        return temp;
     }
 
 	public Temporary visit(FormalParameter node) throws TemporaryOverflowException {
@@ -204,8 +235,16 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
         throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
     }
 
-	public Temporary visit(IntLiteral node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+	public Temporary visit(IntLiteral node) throws TemporaryOverflowException {
+        // Get a temporary to hold the string. This will be returned.
+        var temp = tempPool.acquireTemp(IntegerType.INSTANCE);
+
+        // Generate a constant-assignment instruction and add it to the function
+        var intConstant = IRConstant.forInteger(node.value);
+        var assignmentInstruction = new TemporaryAssignmentInstruction(temp, intConstant);
+        currentIRFunctionBuilder.addInstruction(assignmentInstruction);
+
+        return temp;
     }
 
 	public Temporary visit(LessThanExpression node) throws ASTVisitorException {
