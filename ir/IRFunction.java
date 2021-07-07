@@ -101,7 +101,7 @@ public class IRFunction {
               .append('\n');
         }
 
-        sb.append("}");
+        sb.append("}\n");
         return sb.toString();
     }
 }

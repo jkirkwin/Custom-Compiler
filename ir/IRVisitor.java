@@ -2,6 +2,8 @@ package ir;
 
 import ast.*;
 import common.Environment;
+import java.util.ArrayList;
+import java.util.List;
 import type.*;
 
 /**
@@ -13,11 +15,10 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
     private final IRProgram.Builder programBuilder;
     private final TempPool tempPool;
     private final LabelFactory labelFactory;
-    private final Environment<Identifier, Temporary> variableEnv;
+    private final Environment<String, Temporary> variableEnv;
+    private final Environment<String, Type> functionEnv;
     private IRFunction.Builder currentIRFunctionBuilder;
     private IRMethodType.Builder currentIRFunctionTypeBuilder;
-
-    // TODO Do we need a function environment?
 
     /**
      * Returns a textual representation of the program which has been built.
@@ -31,7 +32,8 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
         programBuilder = new IRProgram.Builder();
         tempPool = new TempFactory();
         labelFactory = new LabelFactory();
-        variableEnv = new Environment<Identifier, Temporary>();
+        variableEnv = new Environment<String, Temporary>();
+        functionEnv = new Environment<String, Type>();
     }
 
     public Temporary visit(AddExpression node) throws ASTVisitorException {
@@ -55,6 +57,8 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
         // Just visit the node's expression to get a temp and then check if the right hand side is an IRConstant of the appropriate type. 
         // If so, then just return that temp. 
         // Otherwise, make your own assignment instruction.
+        
+        // Alternatively: Don't be weird and just allow the duplicated temporary? Pretty sure we can make this work without any crazy infinite recursion.
 
         throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
     }
@@ -100,13 +104,12 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
 
 	public Temporary visit(FormalParameter node) throws TemporaryOverflowException {
         Type paramType = node.typeNode.type;
-        Identifier id = node.identifier;
         String paramName = node.identifier.value;
 
         // Add the param type to the method type and get a temporary for it
         currentIRFunctionTypeBuilder.addArgumentType(paramType);
         var temp = tempPool.acquireParam(paramType, paramName);
-        variableEnv.bind(id, temp);
+        variableEnv.bind(paramName, temp);
 
         return temp;
     }
@@ -125,7 +128,32 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
     }
 
 	public Temporary visit(FunctionCall node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+        
+        // Visit all the arguments expressions and get a list of the temps 
+        // that hold their results. Streaming can't be used here unfortunately
+        // due to the possible checked exceptions from visiting the sub-nodes.
+        List<Temporary> argTemps = new ArrayList<Temporary>();
+        for (var argExpression : node.arguments) {
+            argTemps.add(argExpression.accept(this));
+        }
+
+        var funcName = node.id.value;
+        var returnType = functionEnv.lookup(funcName);
+        var irFunctionCall = new IRFunctionCall(funcName, argTemps);
+        
+        if (TypeUtils.isVoid(returnType)) {
+            // Generate a simple CALL instruction
+            var instruction = new FunctionCallInstruction(irFunctionCall);
+            currentIRFunctionBuilder.addInstruction(instruction);
+            return null;
+        }
+        else {
+            // Generate a CALL-assignment instruction and return the result
+            Temporary temp = tempPool.acquireTemp(returnType);
+            var instruction = new TemporaryAssignmentInstruction(temp, irFunctionCall);
+            currentIRFunctionBuilder.addInstruction(instruction);
+            return temp;
+        }
     }
 
 	public Temporary visit(FunctionDecl node) throws ASTVisitorException {
@@ -167,8 +195,9 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
         return null;
     }
 
-	public Temporary visit(Identifier node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+	public Temporary visit(Identifier node) {
+        // Just return the temporary that holds the variable.
+        return variableEnv.lookup(node.value);
     }
 
 	public Temporary visit(IfStatement node) throws ASTVisitorException {
@@ -209,7 +238,16 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
 
 	public Temporary visit(Program node) throws ASTVisitorException {
         programBuilder.withName("Foo"); // TODO Set program name
+            
+        // Add all functions to the environment first, so function-calls 
+        // can be generated appropriately
+        for (var func : node.functions) {
+            String funcName = func.declaration.identifier.value;
+            Type returnType = func.declaration.typeNode.type;
+            functionEnv.bind(funcName, returnType);
+        }
 
+        // Visit each function and generate IR code for it.
         for (var func : node.functions) {
             func.accept(this);
         }
@@ -218,7 +256,18 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
     }
 
 	public Temporary visit(ReturnStatement node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+        ReturnInstruction returnInstruction; 
+        if (node.returnExpression.isPresent()) {
+            var temp = node.returnExpression.get().accept(this);
+            returnInstruction = new ReturnInstruction(temp);
+        }
+        else {
+            returnInstruction = new ReturnInstruction();
+        }
+
+        currentIRFunctionBuilder.addInstruction(returnInstruction);
+
+        return null; // Nothing meaningful to return
     }
 
 	public Temporary visit(SimpleTypeNode node) throws ASTVisitorException {
@@ -253,11 +302,10 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
 
 	public Temporary visit(VariableDeclaration node) throws TemporaryOverflowException {
         Type varType = node.typeNode.type;
-        Identifier id = node.id;
-        String varName = id.value;
+        String varName = node.id.value;
 
         var temp = tempPool.acquireLocal(varType, varName);
-        variableEnv.bind(id, temp);
+        variableEnv.bind(varName, temp);
         return temp;
     }
 

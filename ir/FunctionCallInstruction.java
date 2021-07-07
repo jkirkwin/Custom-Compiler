@@ -8,11 +8,15 @@ public class FunctionCallInstruction implements IRInstruction {
     private final IRFunctionCall functionCall;
 
     public FunctionCallInstruction(String functionName) {
-        this(functionName, new ArrayList<Temporary>());
+        this(new IRFunctionCall(functionName));
     }
 
     public FunctionCallInstruction(String functionName, List<Temporary> args) {
-        functionCall = new IRFunctionCall(functionName, args);
+        this(new IRFunctionCall(functionName, args));
+    }
+
+    public FunctionCallInstruction(IRFunctionCall functionCall) {
+        this.functionCall = functionCall;
     }
 
     public String toString() {
