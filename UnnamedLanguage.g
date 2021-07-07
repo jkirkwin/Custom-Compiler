@@ -238,11 +238,11 @@ lessThanExpression returns [Expression exprNode]
 plusMinusExpression returns [Expression exprNode]
         : left = multExpression { exprNode = left; }
             ( 
-                (plusToken = PLUS | minusToken = MINUS )
+                (plusToken = PLUS | minusToken = MINUS)
                 
                 nextOperand = multExpression { 
                     // Only one of the token variables should have a value.
-                    assert (plusToken == null) != (minusToken == null);
+                    assert (plusToken == null) != (minusToken == null); 
                     
                     // Determine the position of the operator and create a new node for 
                     // the most recently parsed operator.
@@ -256,7 +256,11 @@ plusMinusExpression returns [Expression exprNode]
                         line = $minusToken.line;
                         offset = $minusToken.pos;
                         exprNode = new SubtractExpression(line, offset, exprNode, nextOperand);
-                    }   
+                    }
+
+                    // Clear both token references
+                    plusToken = null;
+                    minusToken = null;   
                 } 
             )*
         ;
