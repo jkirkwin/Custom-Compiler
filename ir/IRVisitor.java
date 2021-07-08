@@ -348,7 +348,7 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
     }
 
 	public Temporary visit(ParenExpression node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+        return node.expression.accept(this);
     }
 
 	public Temporary visit(PrintlnStatement node) throws ASTVisitorException {
