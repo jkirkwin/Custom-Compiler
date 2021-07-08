@@ -3,6 +3,7 @@ package ir;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import type.Type;
 
 /**
  * Represents an IR function as a list of temporary declarations 
@@ -60,6 +61,14 @@ public class IRFunction {
         public Builder addInstructions(List<IRInstruction> instrs) {
             instructions.addAll(instrs);
             return this;
+        }
+
+        public List<IRInstruction> getInstructions() {
+            return instructions;
+        }
+
+        public Type getReturnType() {
+            return type.returnType;
         }
     }
 

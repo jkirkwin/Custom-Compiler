@@ -69,6 +69,25 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
         );
     }
 
+    /**
+     * Ensures that the last instruction of the current void-returning
+     * function is a RETURN instruction.
+     */
+    private void addTrailingReturn() {
+        var instructions = currentIRFunctionBuilder.getInstructions();
+
+        boolean hasInstructions = !instructions.isEmpty();
+        boolean hasReturn = false;
+        if (hasInstructions) {
+            var lastInstruction = instructions.get(instructions.size() - 1);
+            hasReturn = lastInstruction instanceof ReturnInstruction;
+        }
+
+        if (!hasReturn) {
+            currentIRFunctionBuilder.addInstruction(new ReturnInstruction());
+        }
+    }
+
     public Temporary visit(AddExpression node) throws ASTVisitorException {
         return visitBinaryExpression(BinaryOperation.Operators.PLUS, node);
     }
@@ -220,7 +239,13 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
         for (var stmt : node.statements) {
             stmt.accept(this);
         }
-        // TODO Do we need to add a return statement to the end of non-void functions? What if there's already one (or multiple) there?
+
+        // If the function is of type void and no return was given as the last instruction, add a 
+        // return instruction at the end.
+        var returnType = currentIRFunctionBuilder.getReturnType(); 
+        if (TypeUtils.isVoid(returnType)) {
+            addTrailingReturn();
+        }
 
         return null;
     }
