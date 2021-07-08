@@ -2,9 +2,9 @@ package ir;
 
 import type.*;
 
-public class NegationOperation {
+public class NegationOperation implements IRAssignableExpression {
 
-    private static enum NegationTypes implements IRAssignableExpression {
+    private static enum NegationTypes {
         BITWISE("!"),
         NUMERIC("-");
 
@@ -76,6 +76,6 @@ public class NegationOperation {
     }
 
     public String toString() {
-        return operandType.toIRString() + negationType.toString();
+        return operandType.toIRString() + negationType.toString() + ' ' + operand.toString();
     }
 }

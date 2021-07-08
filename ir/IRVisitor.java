@@ -159,7 +159,11 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
     }
 
 	public Temporary visit(Block node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+        for (var stmt : node.statements) {
+            stmt.accept(this);
+        }
+
+        return null;
     }
 
 	public Temporary visit(BooleanLiteral node) throws TemporaryOverflowException {
@@ -324,7 +328,64 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
     }
 
 	public Temporary visit(IfStatement node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+        // The form of the conversion of an if-else statement is shown 
+        // in the following example:
+        // Source Code:
+        //      if (e) {
+        //          print "if";
+        //      }
+        //      else {
+        //          print "else";
+        //      }
+        // IR Pseudo-Code:
+        //      T0 := Z! e;
+        //      GOTO L0 IF T0; // If negation, go to else block
+        //      PRINTU "if"; 
+        //      GOTO L1;
+        //  L0: ; // Else
+        //      PRINTU "else";
+        //  L1: ; // Done
+        //
+        // For simplicity's sake, we add two labels and GOTO's here even 
+        // if there is no else block. 
+
+        // Evaluate the condition and negate it
+        Temporary condition = node.condition.accept(this);
+        Temporary negatedCondition = tempPool.acquireTemp(BooleanType.INSTANCE);
+        var negationExpression = NegationOperation.forBitwiseNegation(condition);
+        currentIRFunctionBuilder.addInstruction(
+            new TemporaryAssignmentInstruction(negatedCondition, negationExpression)
+        );
+
+        // Allocate labels
+        Label elseLabel = labelFactory.getLabel();
+        Label doneLabel = labelFactory.getLabel();
+
+        // Add the else GOTO and follow it with the if-block's contents
+        currentIRFunctionBuilder.addInstruction(
+            new ConditionalJumpInstruction(negatedCondition, elseLabel)
+        );
+
+        node.ifBlock.accept(this);
+        
+        // At the end of the if-block, add a jump past the else block and
+        // then add the else block, including its label
+        currentIRFunctionBuilder.addInstructions(
+            new JumpInstruction(doneLabel), 
+            new LabelInstruction(elseLabel)
+        );
+
+        if (node.elseBlock.isPresent()) {
+            node.elseBlock.get().accept(this);
+        }
+
+        // Add the final jump target used to skip the else block if the 
+        // if-condition holds
+        currentIRFunctionBuilder.addInstruction(
+            new LabelInstruction(doneLabel)
+        );
+        
+        return null;
     }
 
 	public Temporary visit(IntLiteral node) throws TemporaryOverflowException {

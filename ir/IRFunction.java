@@ -58,8 +58,10 @@ public class IRFunction {
             return this;
         }
 
-        public Builder addInstructions(List<IRInstruction> instrs) {
-            instructions.addAll(instrs);
+        public Builder addInstructions(IRInstruction... instrs) {
+            for (var instruction : instrs) {
+                addInstruction(instruction);
+            }
             return this;
         }
 
