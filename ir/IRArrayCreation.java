@@ -11,6 +11,6 @@ public class IRArrayCreation implements IRAssignableExpression {
     }
 
     public String toString() {
-        return "NEWARRAY (" + arrayType.simpleType.toIRString() + ") " + arrayType.size;
+        return "NEWARRAY " + arrayType.simpleType.toIRString() + ' ' + arrayType.size;
     }
 }

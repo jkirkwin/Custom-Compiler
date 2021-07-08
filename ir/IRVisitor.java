@@ -27,7 +27,7 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
     public String buildProgram() {
         return programBuilder.build().toString(); // TODO Instead, use a filewriter and all the associated stuff to create a .ir file.
     }
-
+    
     public IRVisitor() {
         programBuilder = new IRProgram.Builder();
         tempPool = new TempFactory();
@@ -54,20 +54,61 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
         return destination;        
     }
 
+    /**
+     * Insert a NEWARRAY assignment-instruction to initialize the given 
+     * array-typed temporary.
+     */
+    private void addNewArrayInstruction(Temporary arrayTemp) {
+        assert TypeUtils.isArray(arrayTemp.type());
+
+        ArrayType type = (ArrayType)arrayTemp.type();
+        var newArrayExpression = new IRArrayCreation(type);
+
+        currentIRFunctionBuilder.addInstruction(
+            new TemporaryAssignmentInstruction(arrayTemp, newArrayExpression)
+        );
+    }
+
     public Temporary visit(AddExpression node) throws ASTVisitorException {
         return visitBinaryExpression(BinaryOperation.Operators.PLUS, node);
     }
 
 	public Temporary visit(ArrayAssignmentStatement node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+        Temporary arrayTemp = variableEnv.lookup(node.arrayId.value);
+        Temporary index = node.indexExpression.accept(this);
+        Temporary value = node.valueExpression.accept(this);
+
+        var arrayAccess = new IRArrayAccess(arrayTemp, index);
+        var assignmentInstruction = new ArrayAssignmentInstruction(arrayAccess, value);
+        currentIRFunctionBuilder.addInstruction(assignmentInstruction);
+
+        return null;
     }
 
 	public Temporary visit(ArrayReference node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+        // Find the temporary used for the array and the temporary
+        // used to house the index expression and put them into an
+        // assign-able array access object. 
+        Temporary arrayTemp = variableEnv.lookup(node.id.value);
+        Temporary index = node.indexExpression.accept(this);
+        var arrayAccess = new IRArrayAccess(arrayTemp, index);
+
+        // Find the type of array elements.
+        Type arrayTempType = arrayTemp.type();
+        assert TypeUtils.isArray(arrayTempType);
+        SimpleType elementType = TypeUtils.getArrayElementType(arrayTempType);
+
+        // Get a temporary to store the result and add an assignment
+        // instruction to do so.
+        Temporary destination = tempPool.acquireTemp(elementType);
+        var assignmentInstruction = new TemporaryAssignmentInstruction(destination, arrayAccess);
+        currentIRFunctionBuilder.addInstruction(assignmentInstruction);
+
+        return destination;
     }
 
 	public Temporary visit(ArrayTypeNode node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+        throw new UnsupportedOperationException("Type node should not be visited during IR generation");
     }
 
 	public Temporary visit(AssignmentStatement node) throws ASTVisitorException {
@@ -136,7 +177,10 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
     }
 
 	public Temporary visit(ExpressionStatement node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+        // Generate code for the expression in case it has side effects, 
+        // but there is no need to store or return the result.
+        node.expression.accept(this); 
+        return null;
     }
 
 	public Temporary visit(FloatLiteral node) throws TemporaryOverflowException {
@@ -159,6 +203,11 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
         currentIRFunctionTypeBuilder.addArgumentType(paramType);
         var temp = tempPool.acquireParam(paramType, paramName);
         variableEnv.bind(paramName, temp);
+
+        // Make sure any arrays are created
+        if (TypeUtils.isArray(paramType)) {
+            addNewArrayInstruction(temp);
+        }
 
         return temp;
     }
@@ -328,7 +377,7 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
     }
 
 	public Temporary visit(SimpleTypeNode node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+        throw new UnsupportedOperationException("Type node should not be visited during IR generation");
     }
 
 	public Temporary visit(Statement node) throws ASTVisitorException {
@@ -363,6 +412,12 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
 
         var temp = tempPool.acquireLocal(varType, varName);
         variableEnv.bind(varName, temp);
+        
+        // Make sure any array variables are created
+        if (TypeUtils.isArray(varType)) {
+            addNewArrayInstruction(temp);
+        }
+        
         return temp;
     }
 

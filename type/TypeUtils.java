@@ -32,4 +32,9 @@ public final class TypeUtils {
         return t instanceof ArrayType;
     }
 
+    public static SimpleType getArrayElementType(Type t) {
+        assert isArray(t);
+        return ((ArrayType)t).simpleType;
+    }
+
 }
