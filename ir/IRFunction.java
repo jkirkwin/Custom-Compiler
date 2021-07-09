@@ -97,17 +97,15 @@ public class IRFunction {
 
         // Add temporary declarations
         for (var temp : temps) {
-            sb.append("\tTEMP ")
-              .append(temp.globalIndex())
-              .append(':')
-              .append(temp.type().toIRString())
+            sb.append(temp.declarationString())
               .append(";\n");
         }
 
         // Add instructions
         for (var instr : instructions) {
-            // TODO don't want to indent labels, but (I think) that's the only exception
-            sb.append('\t')
+            // We want labels to be slightly less indented
+            String indent = instr instanceof LabelInstruction ? "  " : "\t";
+            sb.append(indent)
               .append(instr.toString())
               .append('\n');
         }

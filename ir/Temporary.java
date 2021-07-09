@@ -64,4 +64,25 @@ public abstract class Temporary implements IRAssignableExpression {
      */
     public abstract String toString();
 
+    /**
+     * The full text to be used for a temporary declaration.
+     */
+    public String declarationString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("\tTEMP ")
+          .append(globalIndex())
+          .append(':')
+          .append(type().toIRString());
+
+        if (hasAlias()) {
+            sb.append(" [")
+              .append(getAlias())
+              .append(']');
+        }
+              
+        return sb.toString();
+    }
+
+    protected abstract boolean hasAlias();
+    protected abstract String getAlias();
 }

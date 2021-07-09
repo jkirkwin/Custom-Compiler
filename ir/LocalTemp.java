@@ -25,6 +25,14 @@ public class LocalTemp extends Temporary {
     public String toString() {
         return "T" + globalIndex();
     }
+
+    protected boolean hasAlias() {
+        return true;
+    }
+
+    protected String getAlias() {
+        return "L(\"" + sourceId + "\")";
+    }
     
 }
 

@@ -15,4 +15,12 @@ public class TrueTemp extends Temporary {
     public String toString() {
         return "T" + globalIndex();
     }
+
+    protected boolean hasAlias() {
+        return false;
+    }
+
+    protected String getAlias() {
+        throw new UnsupportedOperationException("Temporary has no alias");
+    }
 }
