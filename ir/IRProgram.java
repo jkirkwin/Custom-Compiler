@@ -1,5 +1,8 @@
 package ir;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -8,6 +11,8 @@ import java.util.List;
  * Represents an IR program as a list of functions.
  */
 public class IRProgram {
+
+    private static final String FILE_EXT = ".ir";
 
     /**
      * Used to construct an IR program by repeatedly adding functions.
@@ -45,6 +50,28 @@ public class IRProgram {
     public IRProgram(String programName, List<IRFunction> functions) {
         this.programName = programName;
         this.functions = Collections.unmodifiableList(new ArrayList<IRFunction>(functions));
+    }
+
+    /**
+     * Save the IR program to a file corresponding to its name. If 
+     * no such file already exists, one will be created. If such a 
+     * file does already exist, it will be overwritten.
+     * @return The name of the file that was written 
+     */
+    public String saveToFile() throws FileNotFoundException {
+        String irFileName = programName + FILE_EXT;
+        File irFile = new File(irFileName);
+        
+        try (PrintWriter writer = new PrintWriter(irFile)) {
+            writer.print("PROG ");
+            writer.println(programName);
+    
+            for (var func : functions) {
+                writer.print(func.toString());
+            }
+    
+            return irFileName;
+        }
     }
 
     public String toString() {

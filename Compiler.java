@@ -15,6 +15,31 @@ public class Compiler {
 		System.exit(1); 
 	}
 
+	private static String programNameFromFileName(String fileName) throws Exception {
+		// Remove leading directory names
+		var dirSeparatorIndex = fileName.lastIndexOf(File.separator);
+		if (dirSeparatorIndex == fileName.length()) {
+			throw new Exception("Input file name should not end in a " + File.separator);
+		}
+		else if (dirSeparatorIndex >= 0) {
+			fileName = fileName.substring(dirSeparatorIndex + 1);
+		}
+
+		// Move file extension
+		var extIndex = fileName.indexOf('.');
+		if (extIndex == -1) {
+			// No file extension is present
+			return fileName;
+		}
+		else if (extIndex == 0) {
+			throw new Exception("Input file name should not begin with a period.");
+		}
+		else {
+			// Remove the file extension
+			return fileName.substring(0, extIndex);			
+		}
+	}
+
     public static void main (String[] args) throws IOException {
 		
 		if (args.length == 0) {
@@ -22,14 +47,14 @@ public class Compiler {
 			return;
 		}
 
-		String fileName = args[0];
+		String sourceFileName = args[0];
 
 		ANTLRInputStream input;
 		try {
-			input = new ANTLRInputStream(new FileInputStream(fileName));	
+			input = new ANTLRInputStream(new FileInputStream(sourceFileName));	
 		}
 		catch (FileNotFoundException e) {
-			System.out.println(String.format("Could not open file %s", fileName));
+			System.out.println(String.format("Could not open file %s", sourceFileName));
 			return;
 		}
 
@@ -40,38 +65,35 @@ public class Compiler {
 		UnnamedLanguageParser parser = new UnnamedLanguageParser(tokens);
 
 		try {
-			Program program = parser.program();
+			Program astProgram = parser.program();
             
 			// Ensure the type system and language semantics are respected.
             TypeCheckVisitor semanticVisitor = new TypeCheckVisitor();
-            semanticVisitor.visit(program);
+            semanticVisitor.visit(astProgram);
 
 			// Create the intermediate representation.
 			IRVisitor irVisitor = new IRVisitor();
-			irVisitor.visit(program);
+			String programName = programNameFromFileName(sourceFileName);
+			IRProgram irProgram = irVisitor.buildIRProgram(astProgram, programName);
+			String irFileName = irProgram.saveToFile();
 
-			System.out.println(irVisitor.buildProgram());
-
-			// TODO create a .ir file and use jasmin to create a class file
+			System.out.println("Created IR program: " + irFileName);
         }
         catch (RecognitionException e )	{
     		// A lexical or parsing error occured.
 	    	// ANTLR will have already printed information about the error
 		    // to System.err.
-
 			handleCompilationError();
 		}
 		catch(SemanticException e) {
 			// Print out the cause of the error and positional information 
 			// if appropriate.
 			System.err.println(e.getMessageWithPosition());
-
 			handleCompilationError();
 		}
 		catch (Exception e) {
 			System.err.println(e);
 			e.printStackTrace();
-
 			handleCompilationError();
 		}
 	}

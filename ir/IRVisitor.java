@@ -2,6 +2,7 @@ package ir;
 
 import ast.*;
 import common.Environment;
+import java.io.BufferedWriter;
 import java.util.ArrayList;
 import java.util.List;
 import type.*;
@@ -21,11 +22,12 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
     private IRMethodType.Builder currentIRFunctionTypeBuilder;
 
     /**
-     * Returns a textual representation of the program which has been built.
-     * Must be called after visiting an AST.
+     * Entry point for the visitor. 
+     * Returns an IRProgram from the provided AST.
      */
-    public String buildProgram() {
-        return programBuilder.build().toString(); // TODO Instead, use a filewriter and all the associated stuff to create a .ir file.
+    public IRProgram buildIRProgram(Program astProgram, String programName) throws ASTVisitorException {
+        visit(astProgram);
+        return programBuilder.withName(programName).build();
     }
     
     public IRVisitor() {
@@ -425,9 +427,7 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
         return null; // Nothing meaningful to return
     }
 
-	public Temporary visit(Program node) throws ASTVisitorException {
-        programBuilder.withName("Foo"); // TODO Set program name
-            
+	public Temporary visit(Program node) throws ASTVisitorException {    
         // Add all functions to the environment first, so function-calls 
         // can be generated appropriately
         for (var func : node.functions) {
