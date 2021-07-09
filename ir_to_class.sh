@@ -29,7 +29,7 @@ echo "Running codegen on input file: ${INPUT_FILE}"
 $CODEGEN_EXE --file=$INPUT_FILE > ${JASMIN_INPUT_FILE}
 if [[ $? -ne 0 ]]; then
     echo "codegen failed"
-    rm -rf $TEMP_DIR
+    cat ${JASMIN_INPUT_FILE}
     exit 1
 fi
 
@@ -40,10 +40,7 @@ echo "Running jasmin on temp file ${JASMIN_INPUT_FILE}"
 java jasmin.Main -d $OUTPUT_DIR $JASMIN_INPUT_FILE
 if [[ $? -ne 0 ]]; then
     echo "jasmin class-file generation failed"
-    rm -rf $TEMP_DIR
     exit 1
 fi
 
-echo "Created class file successfully"
-
-rm -rf tmpdir
+rm -rf $TEMP_DIR
