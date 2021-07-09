@@ -4,21 +4,27 @@ void main() {
     strings[1] = "!,.:_{}";
     strings[2] = "0123456789";
     strings[3] = "abc...z";
-    strings[4] = " ";
+    strings[4] = "last";
 
     printStrings(strings);
 }
 
 void printStrings(string[5] strings) {
     int i;
-    i = 5;
-    while (0 < i) {
+    i = 0;
+    while (i < 5) {
+
         print(strings[i]);
 
-        if (1 < i) {
-            println ", ";
+        if (i < 4) {
+            print ", ";
+        }
+        else {
+            print " ";
         }
 
-        i = i - 1;
+        i = i + 1;
     }
+
+    println " ";
 }

@@ -227,11 +227,6 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
         var temp = tempPool.acquireParam(paramType, paramName);
         variableEnv.bind(paramName, temp);
 
-        // Make sure any arrays are created
-        if (TypeUtils.isArray(paramType)) {
-            addNewArrayInstruction(temp);
-        }
-
         return temp;
     }
 
@@ -261,7 +256,8 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
         // due to the possible checked exceptions from visiting the sub-nodes.
         List<Temporary> argTemps = new ArrayList<Temporary>();
         for (var argExpression : node.arguments) {
-            argTemps.add(argExpression.accept(this));
+            Temporary arg = argExpression.accept(this);
+            argTemps.add(arg); 
         }
 
         var funcName = node.id.value;
@@ -508,6 +504,51 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
     }
 
 	public Temporary visit(WhileStatement node) throws ASTVisitorException {
-        throw new UnsupportedOperationException("Unimplemented"); // TODO Implement
+        // The conversion of a while loop into IR code is
+        // shown in the following example:
+        //   Input:
+        //      while (x) {
+        //          /* body */
+        //      }
+        //   IR:
+        //      L0:; // Loop start
+        //          T0 := Z! x;
+        //          GOTO L1 IF T0; // While condition failed.
+        //          /* IR for loop body */
+        //          GOTO L0; // Iterate
+        //      L1:; // Loop over
+
+        Label loopStartLabel = labelFactory.getLabel();
+        Label loopEndLabel = labelFactory.getLabel();
+
+        currentIRFunctionBuilder.addInstruction(
+            new LabelInstruction(loopStartLabel)
+        );
+
+        // Evaluate the loop condition and negate it
+        Temporary condition = node.condition.accept(this);
+        var negationOperation = NegationOperation.forBitwiseNegation(condition);
+        Temporary negatedCondition = tempPool.acquireTemp(BooleanType.INSTANCE);
+        currentIRFunctionBuilder.addInstruction(
+            new TemporaryAssignmentInstruction(negatedCondition, negationOperation)
+        );
+
+        // Exit the loop if the condition fails
+        currentIRFunctionBuilder.addInstruction(
+            new ConditionalJumpInstruction(negatedCondition, loopEndLabel)
+        );
+
+        // Add the loop body's statements and jump back to the start
+        node.block.accept(this);
+        currentIRFunctionBuilder.addInstruction(
+            new JumpInstruction(loopStartLabel)
+        );
+
+        // Define the the end-of-loop jump target
+        currentIRFunctionBuilder.addInstruction(
+            new LabelInstruction(loopEndLabel)
+        );
+
+        return null;
     }
 }
