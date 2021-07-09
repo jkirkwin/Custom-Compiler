@@ -301,6 +301,7 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
 	public Temporary visit(Function node) throws ASTVisitorException {
         // Reset the per-function state
         tempPool.clear();
+        labelFactory.clear();
         currentIRFunctionBuilder = new IRFunction.Builder();
 
         // Visit the function components and build up the function
