@@ -24,6 +24,12 @@ This includes a set of `ASTVisitorException`s thrown due to semantic issues with
 which contains the type checking and semantic analysis logic. Certain issues like missing return statements in complex branching structures
 are not checked at this stage due to their complexity.
 
+## Back-end architecture
+
+An intermediate representation is prescribed by the instructor. It defines the IR format to be used to generate bytecode for the JVM. The IR is designed specifically to make this translation process feasible on the course's tight schedule by making it reasonably similar in structure to Java bytecode. 
+
+After semantic checking is complete (assuming there are no errors), the `ir.IRVisitor` class is used to traverse the AST to produce an `ir.IRProgram` object. To create the intermediate representation instructions, this object can be printed to a .ir file. In the final assignment, the `IRProgram` will be compiled into a Jasmin .j file which can then be used to create a class file by invoking Jasmin.
+
 ## Tooling
 
 Lexing and parser generation is handled by ANTLR. Note that version 3.5.2 of ANTLR was used for pedagogical reasons. Current versions of ANTLR (4+) will not work with this source code package. 
@@ -33,7 +39,8 @@ To compile a .ul source file:
 * Download (or build) an appropriate (v3.x.x) ANTLR Jar
 * Add the ANTLR jar file to your `CLASSPATH`
 * Build the compiler with `make`
-* Compile an input file with `java Compiler <inputfile>`
+* Compile an input file with `java Compiler <inputfile>` to produce a .ir file
+* Use the provided `codegen` utility and Jasmin to create the corresponding class file.
 
 ## Testing
 
