@@ -2,7 +2,7 @@
 
 GNAME= UnnamedLanguage
 GSRC= $(GNAME).g
-PACKAGES= common ast type semantic ir
+PACKAGES= common ast type semantic ir codegen
 
 JAVAC_OPTS= -Xlint:unchecked
 JAVAC= javac $(JAVAC_OPTS)
@@ -27,6 +27,9 @@ semantic: ast type common semantic/*.java
 
 ir: ast type common ir/*.java
 	$(JAVAC) ir/*.java
+
+codegen: ir common codegen/*.java
+	$(JAVAC) codegen/*.java
 
 common: common/*.java
 	$(JAVAC) common/*.java
