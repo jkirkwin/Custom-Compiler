@@ -11,7 +11,7 @@ import type.*;
  * A visitor which traverses the abstract syntax tree and generates
  * an intermediate representation of the source code.
  */
-public class IRVisitor implements ASTVisitor<Temporary>  { 
+public class IRAstVisitor implements ASTVisitor<Temporary>  { 
     
     private final IRProgram.Builder programBuilder;
     private final TempPool tempPool;
@@ -30,7 +30,7 @@ public class IRVisitor implements ASTVisitor<Temporary>  {
         return programBuilder.withName(programName).build();
     }
     
-    public IRVisitor() {
+    public IRAstVisitor() {
         programBuilder = new IRProgram.Builder();
         tempPool = new TempFactory();
         labelFactory = new LabelFactory();

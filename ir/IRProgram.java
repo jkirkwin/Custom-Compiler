@@ -44,12 +44,19 @@ public class IRProgram {
         }
     }
 
-    private final List<IRFunction> functions;
-    private final String programName;
+    public final List<IRFunction> functions;
+    public final String programName;
 
     public IRProgram(String programName, List<IRFunction> functions) {
         this.programName = programName;
         this.functions = Collections.unmodifiableList(new ArrayList<IRFunction>(functions));
+    }
+
+    /**
+     * Used for the Visitor pattern. See {@link IRProgramVisitor} for details.
+     */
+    public <T> T accept(IRProgramVisitor<T> visitor) {
+        return visitor.visit(this);
     }
 
     /**

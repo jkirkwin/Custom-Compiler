@@ -86,6 +86,13 @@ public class IRFunction {
         instructions = Collections.unmodifiableList(new ArrayList<IRInstruction>(instrs));
     }
 
+    /**
+     * Used for the Visitor pattern. See {@link IRProgramVisitor} for details.
+     */
+    public <T> T accept(IRProgramVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
 

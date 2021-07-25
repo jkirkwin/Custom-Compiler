@@ -18,6 +18,13 @@ public class ReturnInstruction implements IRInstruction {
         this.operand = Optional.of(operand);
     }
 
+    /**
+     * Used for the Visitor pattern. See {@link IRProgramVisitor} for details.
+     */
+    public <T> T accept(IRProgramVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
     public String toString() {
         if (operand.isPresent()) {
             return  "RETURN " + operand.get().toString() + ';';

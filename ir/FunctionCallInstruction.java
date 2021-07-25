@@ -19,6 +19,13 @@ public class FunctionCallInstruction implements IRInstruction {
         this.functionCall = functionCall;
     }
 
+    /**
+     * Used for the Visitor pattern. See {@link IRProgramVisitor} for details.
+     */
+    public <T> T accept(IRProgramVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
     public String toString() {
         return functionCall.toString() + ';';
     }

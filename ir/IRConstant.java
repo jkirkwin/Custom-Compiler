@@ -39,6 +39,13 @@ public class IRConstant<T> implements IRAssignableExpression {
         this.value = value;
     }
 
+    /**
+     * Used for the Visitor pattern. See {@link IRProgramVisitor} for details.
+     */
+    public <T> T accept(IRProgramVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
     public SimpleType type() {
         return simpleType;
     }

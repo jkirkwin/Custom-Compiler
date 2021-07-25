@@ -16,6 +16,13 @@ public class ConditionalJumpInstruction extends JumpInstruction {
         this.condition = condition;
     }
 
+    /**
+     * Used for the Visitor pattern. See {@link IRProgramVisitor} for details.
+     */
+    public <T> T accept(IRProgramVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
     @Override
     public String toString() {
         return "IF " + condition.toString() + " " + super.toString();

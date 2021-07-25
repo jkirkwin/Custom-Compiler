@@ -1,4 +1,5 @@
 import ast.*;
+import codegen.*;
 import ir.*;
 import java.io.*;
 import org.antlr.runtime.*;
@@ -72,12 +73,21 @@ public class Compiler {
             semanticVisitor.visit(astProgram);
 
 			// Create the intermediate representation.
-			IRVisitor irVisitor = new IRVisitor();
+			IRAstVisitor irVisitor = new IRAstVisitor();
 			String programName = programNameFromFileName(sourceFileName);
 			IRProgram irProgram = irVisitor.buildIRProgram(astProgram, programName);
-			String irFileName = irProgram.saveToFile();
+			
+			// Generate Jasmin code from the IR representation.
+			// JasminVisitor jasminVisitor = new JasminVisitor();
+			// jasminVisitor.visit(irProgram);
+			// JasminProgram jasminProgram = jasminVisitor.buildJasminProgram();
 
-			System.out.println("Created IR program: " + irFileName);
+			// TODO Save the jasmin program to a .j file. May want to do something 
+			// similar as was done in the IRVisitor.
+			
+			// TODO See if it's possible to run Jasmin to create the class file
+			// as part of this process. Not required for the assignment but would 
+			// be nice for testing.
         }
         catch (RecognitionException e )	{
     		// A lexical or parsing error occured.

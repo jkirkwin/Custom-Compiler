@@ -12,6 +12,13 @@ public class JumpInstruction implements IRInstruction {
         label = l;
     }
 
+    /**
+     * Used for the Visitor pattern. See {@link IRProgramVisitor} for details.
+     */
+    public <T> T accept(IRProgramVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
     public String toString() {
         return "GOTO " + label.toString() + ';';
     }

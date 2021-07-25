@@ -10,6 +10,13 @@ public class IRArrayCreation implements IRAssignableExpression {
         this.arrayType = arrayType;
     }
 
+    /**
+     * Used for the Visitor pattern. See {@link IRProgramVisitor} for details.
+     */
+    public <T> T accept(IRProgramVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
     public String toString() {
         return "NEWARRAY " + arrayType.simpleType.toIRString() + ' ' + arrayType.size;
     }

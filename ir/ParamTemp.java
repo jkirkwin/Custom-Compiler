@@ -18,6 +18,13 @@ public class ParamTemp extends Temporary {
         this.sourceId = sourceId;
     }
 
+    /**
+     * Used for the Visitor pattern. See {@link IRProgramVisitor} for details.
+     */
+    public <T> T accept(IRProgramVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
     public String sourceId() {
         return sourceId;
     }

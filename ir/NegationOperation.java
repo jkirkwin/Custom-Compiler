@@ -75,6 +75,13 @@ public class NegationOperation implements IRAssignableExpression {
         assert (isValidType(operandType, negationType));
     }
 
+    /**
+     * Used for the Visitor pattern. See {@link IRProgramVisitor} for details.
+     */
+    public <T> T accept(IRProgramVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
     public String toString() {
         return operandType.toIRString() + negationType.toString() + ' ' + operand.toString();
     }

@@ -106,6 +106,13 @@ public class BinaryOperation implements IRAssignableExpression {
         assert (isValidType(operator, operationType()));
     }
 
+    /**
+     * Used for the Visitor pattern. See {@link IRProgramVisitor} for details.
+     */
+    public <T> T accept(IRProgramVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
     public Type operationType() {
         return left.type(); // Both operands will have the same type
     }

@@ -6,6 +6,11 @@ package ir;
  * assignment instruction).
  */
 public interface IRAssignableExpression {
+ 
+    /**
+     * Used for the Visitor pattern. See {@link IRProgramVisitor} for details.
+     */
+    public <T> T accept(IRProgramVisitor<T> visitor);
 
     /**
      * The IR string representation of the expression
