@@ -4,105 +4,133 @@ import ir.*;
 
 /**
  * A Visitor for an IRProgram that generates a corresponding 
- * Jasmin program. 
+ * Jasmin program. JasminVisitors are single-use, and should
+ * only be used to visit a single IRProgram.
  */
-public class JasminVisitor { 
+public class JasminVisitor implements IRProgramVisitor<Void> { 
 
-    // TODO Add appropriate returns for each visit method.
+    // TODO Add the necessary state:
+    // * JasminProgramBuilder
+    // * JasminMethodBuilder?
+    // * Some kind of label factory
+    private final JasminProgram.Builder programBuilder;
 
-    public void visit(ArrayAssignmentInstruction irArrayAssignment) {
+    public JasminVisitor() {
+        programBuilder = new JasminProgram.Builder();
+    }
+
+    // TODO Add method to get the program after visiting.
+    
+    /**
+     * Returns the generated JasminProgram after visiting and IRProgram.
+     * This must only be called *after* calling visit(IRProgram).
+     */
+    public JasminProgram buildJasminProgram() {
+        return programBuilder.build();
+    }
+
+    public Void visit(ArrayAssignmentInstruction irArrayAssignment) {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 
-    public void visit(BinaryOperation irBinaryOperation) {
+    public Void visit(BinaryOperation irBinaryOperation) {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 
-    public void visit(ConditionalJumpInstruction irConditionalJump) {
+    public Void visit(ConditionalJumpInstruction irConditionalJump) {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 
-    public void visit(FunctionCallInstruction irFunctionCall) {
+    public Void visit(FunctionCallInstruction irFunctionCall) {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 
-    public void visit(IRArrayAccess irArrayAccess) {
+    public Void visit(IRArrayAccess irArrayAccess) {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 
-    public void visit(IRArrayCreation irArrayCreation) {
+    public Void visit(IRArrayCreation irArrayCreation) {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 
-    public void visit(IRAssignableExpression irAssignableExpression) {
+    public Void visit(IRAssignableExpression irAssignableExpression) {
         throw new UnsupportedOperationException("visit called with abstract IRAssignableOperation parameter");
     }
 
-    public void visit(IRConstant irConstant) {
+    public Void visit(IRConstant irConstant) {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 
-    public void visit(IRFunctionCall irFunctionCall) {
+    public Void visit(IRFunctionCall irFunctionCall) {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 
-    public void visit(IRFunction irFunction) {
+    public Void visit(IRFunction irFunction) {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 
-    public void visit(IRInstruction irInstruction) {
+    public Void visit(IRInstruction irInstruction) {
         throw new UnsupportedOperationException("visit called with IRInstruction parameter");
     }
 
-    public JasminProgram visit(IRProgram irProgram) {
+    public Void visit(IRProgram irProgram) {
+        programBuilder.withClassName(irProgram.programName)
+                      .withSourceFile(irProgram.programName + ".ir");
+
+        // TODO Do the main mapping stuff here and maybe other stuff
+
+        for (var function : irProgram.functions) {
+            function.accept(this);
+        }
+
+        return null;
+    }
+
+    public Void visit(JumpInstruction irJumpInstruction) {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 
-    public void visit(JumpInstruction irJumpInstruction) {
+    public Void visit(LabelInstruction irLabelInstruction) {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 
-    public void visit(LabelInstruction irLabelInstruction) {
+    public Void visit(Label irLabel) {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 
-    public void visit(Label irLabel) {
+    public Void visit(LocalTemp irLocalTemp) {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 
-    public void visit(LocalTemp irLocalTemp) {
+    public Void visit(NegationOperation irNegationOperation) {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 
-    public void visit(NegationOperation irNegationOperation) {
+    public Void visit(ParamTemp irTempParam) {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 
-    public void visit(ParamTemp irTempParam) {
+    public Void visit(PrintInstruction irPrintInstruction) {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 
-    public void visit(PrintInstruction irPrintInstruction) {
+    public Void visit(PrintlnInstruction irPrintlnInstruction) {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 
-    public void visit(PrintlnInstruction irPrintlnInstruction) {
+    public Void visit(ReturnInstruction irReturnInstruction) {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 
-    public void visit(ReturnInstruction irReturnInstruction) {
+    public Void visit(TemporaryAssignmentInstruction irTempAssignmentInstruction) {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 
-    public void visit(TemporaryAssignmentInstruction irTempAssignmentInstruction) {
-        throw new UnsupportedOperationException("Not implemented"); // TODO
-    }
-
-    public void visit(Temporary irTemp) {
+    public Void visit(Temporary irTemp) {
         throw new UnsupportedOperationException("visit called with abstract Temporary parameter");
     }
 
-    public void visit(TrueTemp irTemp) {
+    public Void visit(TrueTemp irTemp) {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 }
