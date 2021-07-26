@@ -1,6 +1,7 @@
 package codegen;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import type.MethodType;
@@ -23,6 +24,7 @@ public class JasminMethod {
             // All UL-generated methods will be static,
             // so we make it the default.
             isStatic = true;
+            statements = new ArrayList<JasminStatement>();
         }
 
         public Builder withMethodName(String methodName) {
@@ -54,7 +56,7 @@ public class JasminMethod {
         }
 
         public JasminMethod build() {
-            return new JasminMethod(methodName, isStatic, statements);
+            return new JasminMethod(methodName, isStatic, methodType, statements);
         }
     }
 

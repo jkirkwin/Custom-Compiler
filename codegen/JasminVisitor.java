@@ -1,6 +1,8 @@
 package codegen;
 
 import ir.*;
+import common.Label;
+import common.LabelFactory;
 
 /**
  * A Visitor for an IRProgram that generates a corresponding 
