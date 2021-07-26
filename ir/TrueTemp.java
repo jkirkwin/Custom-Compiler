@@ -23,11 +23,15 @@ public class TrueTemp extends Temporary {
         return visitor.visit(this);
     }
 
-    protected boolean hasAlias() {
+    public boolean hasAlias() {
         return false;
     }
 
-    protected String getAlias() {
+    public String getAlias() {
+        throw new UnsupportedOperationException("Temporary has no alias");
+    }
+
+    public String getRawAlias() {
         throw new UnsupportedOperationException("Temporary has no alias");
     }
 }

@@ -83,6 +83,25 @@ public abstract class Temporary implements IRAssignableExpression {
         return sb.toString();
     }
 
-    protected abstract boolean hasAlias();
-    protected abstract String getAlias();
+    /**
+     * Answers whether this temporary has a corresponding
+     * alias. Temporaries used to represent named entities
+     * (e.g. parameters, local variables) have such and alias.
+     */
+    public abstract boolean hasAlias();
+
+    /**
+     * Returns the alias for the temporary, if one exists.
+     * If hasAlias() is false, this will throw an exception.
+     */
+    public abstract String getAlias();
+
+    /**
+     * Similar to getAlias(), but returns just the identifier
+     * used in the source code and not the prefix indicating 
+     * the "type" of the source entity (e.g. parameter, local
+     * variable, etc.).
+     */
+    public abstract String getRawAlias();
+
 }

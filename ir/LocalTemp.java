@@ -33,13 +33,16 @@ public class LocalTemp extends Temporary {
         return "T" + globalIndex();
     }
 
-    protected boolean hasAlias() {
+    public boolean hasAlias() {
         return true;
     }
 
-    protected String getAlias() {
+    public String getAlias() {
         return "L(\"" + sourceId + "\")";
     }
-    
+
+    public String getRawAlias() {
+        return sourceId;
+    }
 }
 
