@@ -12,12 +12,14 @@ import common.LabelFactory;
 public class JasminVisitor implements IRProgramVisitor<Void> { 
 
     // TODO Add the necessary state:
-    // * Some kind of label factory
     // * Mappings for temporaries to their positions in the stack?
     //  * Local variable table is used for this I think
 
     private final JasminProgram.Builder programBuilder;
+
+    // Per-function objects
     private JasminMethod.Builder methodBuilder;
+    private LabelFactory labelFactory;
 
     public JasminVisitor() {
         programBuilder = new JasminProgram.Builder();
@@ -69,6 +71,24 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 
+    // Simple linear search to find all labels in the function and return 
+    // the index of the largest one.
+    private int getMaxLabelUsed(IRFunction function) {
+        int max = -1;
+        
+        for (var instruction : function.instructions) {
+            if (instruction instanceof LabelInstruction) {
+                LabelInstruction labelInstruction = (LabelInstruction) instruction;
+                int index = labelInstruction.label.index;
+                if (index > max) {
+                    max = index;
+                }
+            }
+        }
+
+        return max;
+    }
+
     public Void visit(IRFunction irFunction) {
         // We rename the UL's main function to __main for clarity,
         // since the JVM requires a static method of the same name.
@@ -78,6 +98,13 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
             .setStatic(true)
             .withMethodName(methodName)
             .withMethodType(irFunction.type);
+
+        // In case we need to generate extra labels that are not present
+        // in the IR, find the maximum label used in the IR so we know
+        // where to pick up from.
+        int nextLabel = getMaxLabelUsed(irFunction) + 1;
+        labelFactory = new LabelFactory(nextLabel);
+
 
         // TODO Build up the local variable table and whatever else is needed for the temporaries
         // TODO Visit each of the function's statements
