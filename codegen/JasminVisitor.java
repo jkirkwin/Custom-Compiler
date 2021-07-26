@@ -10,10 +10,12 @@ import ir.*;
 public class JasminVisitor implements IRProgramVisitor<Void> { 
 
     // TODO Add the necessary state:
-    // * JasminProgramBuilder
-    // * JasminMethodBuilder?
     // * Some kind of label factory
+    // * Mappings for temporaries to their positions in the stack?
+    //  * Local variable table is used for this I think
+
     private final JasminProgram.Builder programBuilder;
+    private JasminMethod.Builder methodBuilder;
 
     public JasminVisitor() {
         programBuilder = new JasminProgram.Builder();
@@ -66,7 +68,22 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
     }
 
     public Void visit(IRFunction irFunction) {
-        throw new UnsupportedOperationException("Not implemented"); // TODO
+        // We rename the UL's main function to __main for clarity,
+        // since the JVM requires a static method of the same name.
+        String methodName = irFunction.name.equals("main") ? "__main" : irFunction.name;
+        
+        methodBuilder = new JasminMethod.Builder()
+            .setStatic(true)
+            .withMethodName(methodName)
+            .withMethodType(irFunction.type);
+
+        // TODO Build up the local variable table and whatever else is needed for the temporaries
+        // TODO Visit each of the function's statements
+
+        // Add the function to the program
+        programBuilder.addMethod(methodBuilder.build());
+
+        return null;
     }
 
     public Void visit(IRInstruction irInstruction) {
@@ -77,7 +94,8 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         programBuilder.withClassName(irProgram.programName)
                       .withSourceFile(irProgram.programName + ".ir");
 
-        // TODO Do the main mapping stuff here and maybe other stuff
+        // TODO Add an object initializer method
+        // TODO add the "true" main method that calls the renamed static __main() method
 
         for (var function : irProgram.functions) {
             function.accept(this);
