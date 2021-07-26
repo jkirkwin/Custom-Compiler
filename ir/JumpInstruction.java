@@ -1,5 +1,7 @@
 package ir;
 
+import common.Label;
+
 /**
  * Represents a GOTO or "jump" IR instruction that moves
  * control to a specified label.

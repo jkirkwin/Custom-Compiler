@@ -1,5 +1,6 @@
 package ir;
 
+import common.Label;
 
 /**
  * A Visitor for an IRProgram and all its components.

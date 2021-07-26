@@ -1,5 +1,7 @@
 package ir;
 
+import common.Label;
+
 /**
  * Defines a label which can be jumped to.
  */

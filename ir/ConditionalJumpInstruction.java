@@ -1,5 +1,6 @@
 package ir;
 
+import common.Label;
 import type.BooleanType;
 
 public class ConditionalJumpInstruction extends JumpInstruction {
