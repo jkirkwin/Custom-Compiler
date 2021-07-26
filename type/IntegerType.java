@@ -16,4 +16,9 @@ public class IntegerType extends SimpleType {
     public String toIRString() {
         return "I";
     }
+
+    @Override
+    public String toJasminString() {
+        return "I";
+    }
 }

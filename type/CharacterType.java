@@ -17,4 +17,10 @@ public class CharacterType extends SimpleType {
         return "C";
     }
 
+    @Override
+    public String toJasminString() {
+        return "C";
+    }
+
+    
 }

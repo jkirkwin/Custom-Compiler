@@ -11,6 +11,12 @@ public abstract class Type {
      */
     public abstract String toIRString(); 
 
+    /**
+     * Returns the string representation used for the type by the
+     * Jasmin assembler.
+     */
+    public abstract String toJasminString();
+
     public abstract boolean equals(Object o);
 
 }

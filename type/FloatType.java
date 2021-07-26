@@ -16,4 +16,9 @@ public class FloatType extends SimpleType {
     public String toIRString() {
         return "F";
     }
+
+    @Override
+    public String toJasminString() {
+        return "F";
+    }
 }

@@ -16,4 +16,9 @@ public class StringType extends SimpleType {
     public String toIRString() {
         return "U";
     }
+
+    @Override
+    public String toJasminString() {
+        return "Ljava/lang/String;";
+    }
 }

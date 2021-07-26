@@ -21,6 +21,11 @@ public class ArrayType extends Type {
     }
 
     @Override
+    public String toJasminString() {
+        return "[" + simpleType.toJasminString();
+    }
+
+    @Override
     public boolean equals(Object other) {
         if (other != null && other instanceof ArrayType) {
             ArrayType otherArrayType = (ArrayType) other;
