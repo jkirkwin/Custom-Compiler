@@ -1,0 +1,9 @@
+void main() {
+    foo (1, 2, 3);
+}
+
+void foo(int i, int j, int k) {
+    print i;
+    print j;
+    print k;
+}
