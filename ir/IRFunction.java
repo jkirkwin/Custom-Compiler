@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import type.Type;
+import type.MethodType;
 
 /**
  * Represents an IR function as a list of temporary declarations 
@@ -17,7 +18,7 @@ public class IRFunction {
     public static class Builder {
 
         private String name = null;
-        private IRMethodType type = null;
+        private MethodType type = null;
         private final List<Temporary> temps;
         private final List<IRInstruction> instructions;
 
@@ -38,7 +39,7 @@ public class IRFunction {
             return this;
         }
 
-        public Builder withMethodType(IRMethodType type) {
+        public Builder withMethodType(MethodType type) {
             this.type = type;
             return this;
         }
@@ -75,11 +76,11 @@ public class IRFunction {
     }
 
     public final String name;
-    public final IRMethodType type;
+    public final MethodType type;
     public final List<Temporary> temps;
     public final List<IRInstruction> instructions;
 
-    public IRFunction(String name, IRMethodType type, List<Temporary> temps, List<IRInstruction> instrs) {
+    public IRFunction(String name, MethodType type, List<Temporary> temps, List<IRInstruction> instrs) {
         this.name = name;
         this.type = type;
         this.temps = Collections.unmodifiableList(new ArrayList<Temporary>(temps));

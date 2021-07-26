@@ -1,20 +1,26 @@
-package ir;
+package type;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import type.Type;
 
 /**
- * Represents the type of a method in the IR.
+ * Represents the type of a method.
  * Contains a return type and zero or more ordered argument types.
  */
-public class IRMethodType {
+public class MethodType {
 
+    /**
+     * Used to more easily construct a MethodType.
+     */
     public static class Builder {
-        private Type returnType = null;
+        private Type returnType = VoidType.INSTANCE;
         private final List<Type> argumentTypes = new ArrayList<Type>();
 
+        /**
+         * Creates a new Builder for a MethodType with 
+         * return type void and no arguments.
+         */
         public Builder withReturnType(Type retType) {
             returnType = retType;
             return this;
@@ -25,22 +31,25 @@ public class IRMethodType {
             return this;
         }
 
-        public IRMethodType build() {
-            return new IRMethodType(returnType, argumentTypes);
+        public MethodType build() {
+            return new MethodType(returnType, argumentTypes);
         }
     }
 
     public final Type returnType;
-    public final List<Type> argumentTypes;
+    public final List<Type> argumentTypes; // Immutable so can be public
 
-    public IRMethodType(Type returnType) {
+    /**
+     * Construct a new MethodType with no arguments.
+     */
+    public MethodType(Type returnType) {
         assert returnType != null;
 
         this.returnType = returnType;
         argumentTypes = new ArrayList<Type>();
     }
 
-    public IRMethodType(Type returnType, List<Type> argTypes) {
+    public MethodType(Type returnType, List<Type> argTypes) {
         assert returnType != null;
         assert argTypes != null;
 
@@ -48,6 +57,7 @@ public class IRMethodType {
         argumentTypes = Collections.unmodifiableList(new ArrayList<Type>(argTypes));
     }
 
+    // TODO Rename to toIRString
     public String toString() {
         StringBuilder sb = new StringBuilder("(");
 
@@ -60,4 +70,6 @@ public class IRMethodType {
 
         return sb.toString();
     }
+
+    // TODO add toJasminString?
 }

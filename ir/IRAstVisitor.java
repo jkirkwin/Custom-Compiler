@@ -19,7 +19,7 @@ public class IRAstVisitor implements ASTVisitor<Temporary>  {
     private final Environment<String, Temporary> variableEnv;
     private final Environment<String, Type> functionEnv;
     private IRFunction.Builder currentIRFunctionBuilder;
-    private IRMethodType.Builder currentIRFunctionTypeBuilder;
+    private MethodType.Builder currentIRFunctionTypeBuilder;
 
     /**
      * Entry point for the visitor. 
@@ -285,7 +285,7 @@ public class IRAstVisitor implements ASTVisitor<Temporary>  {
         String name = node.identifier.value;
         Type returnType = node.typeNode.type;
         
-        currentIRFunctionTypeBuilder = new IRMethodType.Builder();
+        currentIRFunctionTypeBuilder = new MethodType.Builder();
         currentIRFunctionTypeBuilder.withReturnType(returnType);
 
         // Visit the formals and build up the return type
