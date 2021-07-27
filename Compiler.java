@@ -78,9 +78,9 @@ public class Compiler {
 			IRProgram irProgram = irVisitor.buildIRProgram(astProgram, programName);
 			
 			// Generate Jasmin code from the IR representation.
-			// JasminVisitor jasminVisitor = new JasminVisitor();
-			// jasminVisitor.visit(irProgram);
-			// JasminProgram jasminProgram = jasminVisitor.buildJasminProgram();
+			JasminVisitor jasminVisitor = new JasminVisitor();
+			jasminVisitor.visit(irProgram);
+			JasminProgram jasminProgram = jasminVisitor.buildJasminProgram();
 
 			// TODO Save the jasmin program to a .j file. May want to do something 
 			// similar as was done in the IRVisitor.

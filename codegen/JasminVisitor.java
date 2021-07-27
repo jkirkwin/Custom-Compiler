@@ -93,11 +93,9 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         // We rename the UL's main function to __main for clarity,
         // since the JVM requires a static method of the same name.
         String methodName = irFunction.name.equals("main") ? "__main" : irFunction.name;
-        
-        methodBuilder = new JasminMethod.Builder()
-            .setStatic(true)
-            .withMethodName(methodName)
-            .withMethodType(irFunction.type);
+        var signature = new JasminMethodSignature(true, irFunction.type, methodName);
+
+        methodBuilder = new JasminMethod.Builder().withSignature(signature);
 
         // In case we need to generate extra labels that are not present
         // in the IR, find the maximum label used in the IR so we know

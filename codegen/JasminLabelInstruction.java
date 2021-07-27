@@ -5,7 +5,7 @@ import common.Label;
 /**
  * Represents a Jasmin label declaration.
  */
-public class JasminLabelInstruction implements JasminInstruction {
+public class JasminLabelInstruction implements JasminStatement {
  
     public final Label label;
 

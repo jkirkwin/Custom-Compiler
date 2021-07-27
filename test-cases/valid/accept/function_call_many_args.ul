@@ -1,0 +1,26 @@
+// This test is used to ensure that the limit for the number
+// of stack entries is adapted to fit the largest function call 
+
+// Limit should be 7 or more
+void main() {
+    string s;
+    
+    seven_args(1,2,3,4,5,6,7);
+    
+    s = "FooBar";
+    six_args("Hello", "there", s, "abc", s, 'd');
+}
+
+// Limit should be 6 or more
+int call_six_only() {
+    return six_args("abc", "def", "hij", "klm", "nop", 'q');
+}
+
+void seven_args(int one, int two, int three, int four, int five, int six, int seven) {
+    print "sum of 7 args is ";
+    println (one + two + three + four) + five + (six + seven);
+}
+
+int six_args(string s1, string s2, string s3, string s4, string s5, char c) {
+    println "5 strings and a character";
+}
