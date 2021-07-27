@@ -105,9 +105,31 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         int nextLabel = getMaxLabelUsed(irFunction) + 1;
         labelFactory = new LabelFactory(nextLabel);
 
+        // Before processing the variable/temporary declarations, allocate two 
+        // new "dummy" labels who will act as beginning and end markers for 
+        // all variable scopes. Since all variables share the same scope, this
+        // is the simplest way to force the correct behaviour.
+        var startLabel = labelFactory.getLabel();
+        var endLabel = labelFactory.getLabel();
 
-        // TODO Build up the local variable table and whatever else is needed for the temporaries
-        // TODO Visit each of the function's statements
+        // Iterate over each of the function's temporaries and create declaration
+        // directives for each one them
+        for (var temp : irFunction.temps) {
+            methodBuilder.addVariable(new JasminVariableDeclaration(temp, startLabel, endLabel));
+        }
+
+        // Insert the start label before any of the "real" instructions
+        methodBuilder.addStatement(new JasminLabelInstruction(startLabel));
+        
+        // Visit each of the function's statements
+        for (var instruction : irFunction.instructions) {
+            instruction.accept(this);
+        }
+
+        // Before completing the function, add the end label.
+        // It's okay if this comes after a return instruction
+        // because we're never jumping to the label.
+        methodBuilder.addStatement(new JasminLabelInstruction(endLabel));
 
         // Add the function to the program
         programBuilder.addMethod(methodBuilder.build());

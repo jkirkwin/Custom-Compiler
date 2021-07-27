@@ -15,6 +15,7 @@ public class JasminMethod {
         private MethodType methodType;
 
         // Body
+        private final List<JasminVariableDeclaration> variables;
         private final List<JasminStatement> statements;
         
         // TODO Add local variable mapping stuff in here.
@@ -43,6 +44,18 @@ public class JasminMethod {
             return this;
         }
 
+        public Builder addVariable(JasminVariableDeclaration variable) {
+            variables.add(variable);
+            return this;
+        }
+
+        public Builder addVariables(Collection<JasminVariableDeclaration> variables) {
+            for (var variable : variables) {
+                addVariable(variable)
+            }
+            return this;
+        }
+
         public Builder addStatement(JasminStatement statement) {
             statements.add(statement);
             return this;
@@ -56,7 +69,7 @@ public class JasminMethod {
         }
 
         public JasminMethod build() {
-            return new JasminMethod(methodName, isStatic, methodType, statements);
+            return new JasminMethod(methodName, isStatic, methodType, variables, statements);
         }
     }
 
@@ -64,12 +77,18 @@ public class JasminMethod {
     public final String methodName;
     public final boolean isStatic;
     public MethodType type;
+    public final List<JasminVariableDeclaration> variables;
     public final List<JasminStatement> statements;
 
-    public JasminMethod(String methodName, boolean isStatic, MethodType type, List<JasminStatement> statements) {
+    private JasminMethod(String methodName, 
+                        boolean isStatic, 
+                        MethodType type, 
+                        List<JasminVariableDeclaration> variables, 
+                        List<JasminStatement> statements) {
         this.methodName = methodName;
         this.isStatic = isStatic;
         this.type = type;
+        this.variables = Collections.unmodifiableList(new ArrayList<JasminVariableDeclaration>(variables));
         this.statements = Collections.unmodifiableList(new ArrayList<JasminStatement>(statements));
     }
 }
