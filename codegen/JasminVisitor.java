@@ -3,17 +3,27 @@ package codegen;
 import ir.*;
 import common.Label;
 import common.LabelFactory;
+import java.io.File;
+import java.io.PrintWriter;
 
 /**
  * A Visitor for an IRProgram that generates a corresponding 
  * Jasmin program. JasminVisitors are single-use, and should
  * only be used to visit a single IRProgram.
+ * 
+ * The generated code is saved in a file with a .j extension.
  */
 public class JasminVisitor implements IRProgramVisitor<Void> { 
+
+    private static String OBJECT_CLASS = "java/lang/Object";
+    private static String UL_MAIN_METHOD = "__main";
 
     // TODO Add the necessary state:
     // * Mappings for temporaries to their positions in the stack?
     //  * Local variable table is used for this I think
+
+    // Writer to the output file.
+    PrintWriter fileWriter;
 
     private final JasminProgram.Builder programBuilder;
 
@@ -92,7 +102,7 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
     public Void visit(IRFunction irFunction) {
         // We rename the UL's main function to __main for clarity,
         // since the JVM requires a static method of the same name.
-        String methodName = irFunction.name.equals("main") ? "__main" : irFunction.name;
+        String methodName = irFunction.name.equals("main") ? UL_MAIN_METHOD : irFunction.name;
         var signature = new JasminMethodSignature(true, irFunction.type, methodName);
 
         methodBuilder = new JasminMethod.Builder().withSignature(signature);
@@ -139,17 +149,76 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         throw new UnsupportedOperationException("visit called with IRInstruction parameter");
     }
 
+    /**
+     * Writes the .source, .class, and .super directives to the
+     * output file.
+     */
+    private void writeJasminHeader(String className) {
+        fileWriter.append(".source ")
+        .append(className)
+        .println(".ir");
+
+        fileWriter.append(".class public ")
+                .println(className);
+
+        fileWriter.append(".super ")
+                .println(OBJECT_CLASS);
+
+        fileWriter.println();
+    }
+
+    /**
+     * Writes the boilerplate object initializer method to the output file.
+     */
+    private void writeObjectInitializer() {
+        // TODO Replace this with a shared function for when we're visiting an irFunction?
+        // TODO This is super gross but if it works, it works...
+        fileWriter.println(".method public <init>()V");
+        fileWriter.append('\t').println("aload_0");
+        fileWriter.append('\t').println("invokenonvirtual java/lang/Object/<init>()V");
+        fileWriter.append('\t').println("return");
+        fileWriter.println(".end method");
+    }
+
+    /**
+     * Writes the boilerplate main method which calls the UL's renamed main
+     * method.
+     */
+    private void writeMainMethod() {
+        // TODO Factor some of this out. We at least want a printMethodSignature function.
+        // TODO May even want to make a method builder that handles indentation etc for us.
+        fileWriter.println("; Java main method to call the UL main method (" + UL_MAIN_METHOD + ")");
+        fileWriter.println(".method public static main([Ljava/lang/String;)V");
+        fileWriter.append('\t').println(".limit locals 1");
+        fileWriter.append('\t').println(".limit stack 4");
+        fileWriter.append('\t').println("invokestatic hello_world/__main()V");
+        fileWriter.append('\t').println("return");
+        fileWriter.println(".end method");
+    }
+
     public Void visit(IRProgram irProgram) {
-        programBuilder.withClassName(irProgram.programName)
-                      .withSourceFile(irProgram.programName + ".ir");
+        // Open the output file 
+        String outputFileName = irProgram.programName + ".j";
+        File outputFile = new File(outputFileName);
+        try (PrintWriter w = new PrintWriter(outputFile)) {
+            // Store the reference so the rest of the visitor can use it
+            fileWriter = w; 
 
-        // TODO Add an object initializer method
-        // TODO add the "true" main method that calls the renamed static __main() method
+            // Write the header, main method, and object initializer boilerplate.
+            writeJasminHeader(irProgram.programName);
+            writeObjectInitializer();
+            fileWriter.println();
+            writeMainMethod();
+            fileWriter.println();
 
-        for (var function : irProgram.functions) {
-            function.accept(this);
+            for (var function : irProgram.functions) {
+                function.accept(this);
+            }
         }
-
+        catch (Exception e) {
+            fileWriter = null; // Clear the PrintWriter reference on error
+        }
+    
         return null;
     }
 
