@@ -1,0 +1,141 @@
+void main() {
+    int i;
+    float f;
+    boolean b;
+    char c;
+    string s;
+
+    int[2] i_s;
+    int[2] is2;
+    float[2] fs;
+    float[2] fs2;
+    boolean[2] bs;
+    boolean[2] bs2;
+    char[2] cs;
+    char[2] cs2;
+    string[2] ss;
+    string[2] ss2;
+
+    i = 100;
+    f = 99.99;
+    b = true;
+    c = 'Z';
+    s = "Hello";
+
+    // We need the underscore here because 'is'
+    // is an invalid identifier
+    i_s[0] = i;
+    i_s[1] = 101;
+
+    fs[0] = f;
+    fs[1] = 100.1;
+
+    bs[0] = b;
+    bs[1] = false;
+
+    cs[0] = c;
+    cs[1] = 'z';
+
+    ss[0] = s;
+    ss[1] = "world";
+
+    // Call all functions and discard the result
+    return_int(i);
+    return_float(f);
+    return_boolean(b);
+    return_char(c);
+    return_string(s);
+
+    return_int_array(i_s);
+    return_float_array(fs);
+    return_boolean_array(bs);
+    return_char_array(cs);
+    return_string_array(ss);
+
+    // Call all functions and use the results
+    print "int result: ";
+    println return_int(i);
+
+    print "float result: ";
+    println return_float(f);
+
+    print "boolean result: ";
+    println return_boolean(b);
+
+    print "char result: ";
+    println return_char(c);
+
+    print "string result: ";
+    println return_string(s);
+
+    is2 = return_int_array(i_s);
+    print "int array result: ";
+    print is2[0];
+    print ", ";
+    println is2[1];
+
+    fs2 = return_float_array(fs);
+    print "float array result:";
+    print fs2[0];
+    print ", ";
+    println fs2[1];
+
+    bs2 = return_boolean_array(bs);
+    print "boolean array result:";
+    print bs2[0];
+    print ", ";
+    println bs2[1];
+
+    cs2 = return_char_array(cs);
+    print "char array result:";
+    print cs2[0];
+    print ", ";
+    println cs2[1];
+
+    ss2 = return_string_array(ss);
+    print "string array result:";
+    print ss2[0];
+    print ", ";
+    println ss2[1];
+}
+
+int return_int(int i) {
+    return i;
+}
+
+float return_float(float f) {
+    return f;
+}
+
+boolean return_boolean(boolean b) {
+    return b;
+}
+
+char return_char(char c) {
+    return c;
+}
+
+string return_string(string s) {
+    return s;
+}
+
+int[2] return_int_array(int[2] i_s) {
+    return i_s;
+}
+
+float[2] return_float_array(float[2] fs) {
+    return fs;
+}
+
+boolean[2] return_boolean_array(boolean[2] bs) {
+    return bs;
+}
+
+char[2] return_char_array(char[2] cs) {
+    return cs;
+}
+
+string[2] return_string_array(string[2] ss) {
+    return ss;
+}
+

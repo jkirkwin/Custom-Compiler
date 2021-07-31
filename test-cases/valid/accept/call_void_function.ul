@@ -1,0 +1,7 @@
+void main() {
+    foo();
+}
+
+void foo() {
+    // Nothing to do here.
+}
