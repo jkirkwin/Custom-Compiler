@@ -5,7 +5,7 @@ import java.util.List;
 
 public class FunctionCallInstruction implements IRInstruction {
 
-    private final IRFunctionCall functionCall;
+    public final IRFunctionCall functionCall;
 
     public FunctionCallInstruction(String functionName) {
         this(new IRFunctionCall(functionName));

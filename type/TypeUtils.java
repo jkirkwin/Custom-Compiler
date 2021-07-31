@@ -32,6 +32,10 @@ public final class TypeUtils {
         return t instanceof ArrayType;
     }
 
+    public static boolean isReferenceType(Type t) {
+        return isString(t) || isArray(t);
+    }
+
     public static SimpleType getArrayElementType(Type t) {
         assert isArray(t);
         return ((ArrayType)t).simpleType;

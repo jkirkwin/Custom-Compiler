@@ -55,7 +55,7 @@ public class IRProgram {
     /**
      * Used for the Visitor pattern. See {@link IRProgramVisitor} for details.
      */
-    public <T> T accept(IRProgramVisitor<T> visitor) {
+    public <T> T accept(IRProgramVisitor<T> visitor) throws Exception {
         return visitor.visit(this);
     }
 

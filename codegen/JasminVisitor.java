@@ -1,8 +1,8 @@
 package codegen;
 
 import ir.*;
-import common.Label;
-import common.LabelFactory;
+import common.*;
+import type.*;
 import java.io.File;
 import java.io.PrintWriter;
 
@@ -15,40 +15,69 @@ import java.io.PrintWriter;
  */
 public class JasminVisitor implements IRProgramVisitor<Void> { 
 
-    private static String OBJECT_CLASS = "java/lang/Object";
-    private static String UL_MAIN_METHOD = "__main";
+    private static final String OBJECT_CLASS = "java/lang/Object";
+    private static final String UL_MAIN_METHOD = "__main";
+
+    /**
+     * Returns the JVM type mnemonic that is used to prefix load,
+     * store, etc. instructions. 
+     */
+    private static String jvmTypeMnemonic(Type t) {
+        if (TypeUtils.isReferenceType(t)) {
+            return "a";
+        }
+        else if (TypeUtils.isInt(t) || TypeUtils.isBoolean(t) || TypeUtils.isChar(t)) {
+            return "i";
+        }
+        else if (TypeUtils.isFloat(t)) {
+            return "f";
+        }
+        else {
+            throw new IllegalArgumentException("Cannot get mnemonic for type " + t.toString());
+        }
+    }
 
     // TODO Add the necessary state:
     // * Mappings for temporaries to their positions in the stack?
     //  * Local variable table is used for this I think
 
-    // Writer to the output file.
-    PrintWriter fileWriter;
+    private PrintWriter fileWriter;
+    private String className;
+    private final Environment<String, MethodType> functionEnv;
 
-    private final JasminProgram.Builder programBuilder;
+
+    // private final JasminProgram.Builder programBuilder;
 
     // Per-function objects
-    private JasminMethod.Builder methodBuilder;
+    // private JasminMethod.Builder methodBuilder;
     private LabelFactory labelFactory;
 
     public JasminVisitor() {
-        programBuilder = new JasminProgram.Builder();
+        functionEnv = new Environment<String, MethodType>();
     }
     
-    /**
-     * Returns the generated JasminProgram after visiting and IRProgram.
-     * This must only be called *after* calling visit(IRProgram).
-     */
-    public JasminProgram buildJasminProgram() {
-        return programBuilder.build();
-    }
-
     /**
      * Write a label definition to the current function with a partial 
      * indent.
      */
     private void writeLabel(Label label) {
         fileWriter.append("  ").append(label.toJasminString()).println(":");
+    }
+
+    /**
+     * Uses a load instruction to push the value of a variable onto the 
+     * operand stack.
+     */
+    private void pushVariable(Temporary temp) { // TODO Test this for all types
+        // Choose appropriate load instruction based on the type 
+        // of the value to be pushed. 
+        // E.g. an integer will result in 
+        //      iload <temp_number>
+        var prefix = jvmTypeMnemonic(temp.type());
+        fileWriter.append('\t')
+                  .append(prefix)
+                  .append("load ")
+                  .println(temp.globalIndex()); 
     }
 
     public Void visit(ArrayAssignmentInstruction irArrayAssignment) {
@@ -63,11 +92,32 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 
-    public Void visit(FunctionCallInstruction irFunctionCall) {
-        throw new UnsupportedOperationException("Not implemented"); // TODO
+    private void pushMethodArguments(IRFunctionCall functionCall) {
+        for (var arg : functionCall.args) {
+            pushVariable(arg);
+        }
+    }
 
+    public Void visit(FunctionCallInstruction callInstruction) {
+        // This is just a function call for which we discard the return value
+        // if there is one.
 
+        // TODO Share some of this logic with function-call assignment (TemporaryAssignmentInstruction with IRFunctionCall RHS)
 
+        // Push the arguments onto the stack
+        pushMethodArguments(callInstruction.functionCall);
+
+        // Make the actual function call
+        var functionName = callInstruction.functionCall.functionName;
+        var functionType = functionEnv.lookup(functionName);
+        fileWriter.append('\t')
+                  .append("invokestatic ")
+                  .append(className)
+                  .append('/')
+                  .append(functionName)
+                  .println(functionType.toString());
+        
+        return null;
     }
 
     public Void visit(IRArrayAccess irArrayAccess) {
@@ -179,7 +229,7 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
      * Writes the .source, .class, and .super directives to the
      * output file.
      */
-    private void writeJasminHeader(String className) {
+    private void writeJasminHeader() {
         fileWriter.append(".source ")
         .append(className)
         .println(".ir");
@@ -217,25 +267,31 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         fileWriter.println(".method public static main([Ljava/lang/String;)V");
         fileWriter.append('\t').println(".limit locals 1");
         fileWriter.append('\t').println(".limit stack 4");
-        fileWriter.append('\t').println("invokestatic hello_world/__main()V");
+        fileWriter.append('\t').append("invokestatic ").append(className).println("/__main()V");
         fileWriter.append('\t').println("return");
         fileWriter.println(".end method");
     }
 
     public Void visit(IRProgram irProgram) throws Exception {
         // Open the output file 
-        String outputFileName = irProgram.programName + ".j";
+        className = irProgram.programName;
+        String outputFileName = className + ".j";
         File outputFile = new File(outputFileName);
         try (PrintWriter w = new PrintWriter(outputFile)) {
             // Store the reference so the rest of the visitor can use it
             fileWriter = w; 
 
             // Write the header, main method, and object initializer boilerplate.
-            writeJasminHeader(irProgram.programName);
+            writeJasminHeader();
             writeObjectInitializer();
             fileWriter.println();
             writeMainMethod();
             fileWriter.println();
+
+            // Add all the functions' types to an environment
+            for (var function : irProgram.functions) {
+                functionEnv.bind(function.name, function.type);
+            }
 
             for (var function : irProgram.functions) {
                 function.accept(this);
@@ -282,11 +338,20 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
     }
 
     public Void visit(ReturnInstruction irReturnInstruction) {
-        throw new UnsupportedOperationException("Not implemented"); // TODO
+        if(irReturnInstruction.operand.isPresent()) {
+            // TODO I think we need to use ireturn etc. here after loading the return value.
+            // Check the behaviour for chars, booleans, and other types to see which to use.
+            throw new UnsupportedOperationException("Not implemented");
+        }
+        else {
+            fileWriter.println("\treturn");
+        }
+
+        return null;
     }
 
     public Void visit(TemporaryAssignmentInstruction irTempAssignmentInstruction) {
-        throw new UnsupportedOperationException("Not implemented"); // TODO
+        throw new UnsupportedOperationException("Not implemented"); // TODO NEXT
     }
 
     public Void visit(Temporary irTemp) {

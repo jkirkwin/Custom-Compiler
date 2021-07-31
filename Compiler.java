@@ -81,7 +81,6 @@ public class Compiler {
 			// to the output file.
 			JasminVisitor jasminVisitor = new JasminVisitor();
 			jasminVisitor.visit(irProgram);
-			JasminProgram jasminProgram = jasminVisitor.buildJasminProgram();
 
 			// TODO See if it's possible to run Jasmin to create the class file
 			// as part of this process. Not required for the assignment but would 

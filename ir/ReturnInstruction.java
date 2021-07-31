@@ -8,7 +8,7 @@ import java.util.Optional;
  */
 public class ReturnInstruction implements IRInstruction {
 
-    private final Optional<Temporary> operand;
+    public final Optional<Temporary> operand;
 
     public ReturnInstruction() {
         operand = Optional.empty();

@@ -1,6 +1,7 @@
 package ir;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class IRFunctionCall implements IRAssignableExpression {
@@ -18,8 +19,8 @@ public class IRFunctionCall implements IRAssignableExpression {
         return s + ")";
     }
 
-    private final String functionName;
-    private final String argsString;
+    public final String functionName;
+    public final List<Temporary> args;
 
     /**
      * Creates a call operation with no arguments
@@ -33,7 +34,7 @@ public class IRFunctionCall implements IRAssignableExpression {
      */
     public IRFunctionCall(String name, List<Temporary> args) {
         functionName = name;
-        argsString = getArgumentString(args);
+        this.args = Collections.unmodifiableList(new ArrayList<Temporary>(args));
     }
 
     /**
@@ -44,6 +45,6 @@ public class IRFunctionCall implements IRAssignableExpression {
     }
 
     public String toString() {
-        return "CALL " + functionName + argsString;
+        return "CALL " + functionName + getArgumentString(args);
     }
 }
