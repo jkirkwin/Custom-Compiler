@@ -19,6 +19,6 @@ public class BooleanType extends SimpleType {
 
     @Override
     public String toJasminString() {
-        throw new UnsupportedOperationException("The JVM does not support boolean types. Use int (I) instead.");
+        return "Z";
     }
 }

@@ -2,7 +2,7 @@ package ir;
 
 public class TemporaryAssignmentInstruction implements IRInstruction {
 
-    private final Temporary destination;
+    public final Temporary destination;
     public final IRAssignableExpression value;
 
     public TemporaryAssignmentInstruction(Temporary destination, IRAssignableExpression value) {

@@ -5,6 +5,7 @@ import common.*;
 import type.*;
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.List;
 
 /**
  * A Visitor for an IRProgram that generates a corresponding 
@@ -24,7 +25,7 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
      */
     private static String jvmTypeMnemonic(Type t) {
         if (TypeUtils.isReferenceType(t)) {
-            return "a";
+            return "a"; // TODO Note that this is more complex for array accesses, where we need to use castore, bastore, etc.
         }
         else if (TypeUtils.isInt(t) || TypeUtils.isBoolean(t) || TypeUtils.isChar(t)) {
             return "i";
@@ -43,6 +44,7 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
 
     private PrintWriter fileWriter;
     private String className;
+    private int stackLimit;
     private final Environment<String, MethodType> functionEnv;
 
 
@@ -80,6 +82,18 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
                   .println(temp.globalIndex()); 
     }
 
+    /**
+     * Uses a store instruction to pop the value off the top of the
+     * operand stack into the given variable.
+     */
+    private void popVariable(Temporary temp) { // TODO Test this for all types
+        var prefix = jvmTypeMnemonic(temp.type());
+        fileWriter.append('\t')
+                  .append(prefix)
+                  .append("store ")
+                  .println(temp.globalIndex()); 
+    }
+
     public Void visit(ArrayAssignmentInstruction irArrayAssignment) {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
@@ -101,21 +115,16 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
     public Void visit(FunctionCallInstruction callInstruction) {
         // This is just a function call for which we discard the return value
         // if there is one.
-
-        // TODO Share some of this logic with function-call assignment (TemporaryAssignmentInstruction with IRFunctionCall RHS)
-
-        // Push the arguments onto the stack
-        pushMethodArguments(callInstruction.functionCall);
-
+    
         // Make the actual function call
-        var functionName = callInstruction.functionCall.functionName;
+        callInstruction.functionCall.accept(this);
+
+        // If there is a return value, pop it off the stack to discard it.
+        String functionName = callInstruction.functionCall.functionName;
         var functionType = functionEnv.lookup(functionName);
-        fileWriter.append('\t')
-                  .append("invokestatic ")
-                  .append(className)
-                  .append('/')
-                  .append(functionName)
-                  .println(functionType.toString());
+        if (!TypeUtils.isVoid(functionType.returnType)) {
+            fileWriter.println("\tpop");
+        }
         
         return null;
     }
@@ -133,11 +142,26 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
     }
 
     public Void visit(IRConstant irConstant) {
-        throw new UnsupportedOperationException("Not implemented"); // TODO
+        // Push the constant onto the operand stack.
+        fileWriter.append("\tldc ").println(irConstant.toString());
+
+        return null;
     }
 
     public Void visit(IRFunctionCall irFunctionCall) {
-        throw new UnsupportedOperationException("Not implemented"); // TODO
+        pushMethodArguments(irFunctionCall);
+
+        // Make the actual function call instruction
+        var functionName = irFunctionCall.functionName;
+        var functionType = functionEnv.lookup(functionName);
+        fileWriter.append('\t')
+                  .append("invokestatic ")
+                  .append(className)
+                  .append('/')
+                  .append(functionName)
+                  .println(functionType.toString());
+
+        return null;
     }
 
     // Simple linear search to find all labels in the function and return 
@@ -162,7 +186,7 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         // We rename the UL's main function to __main for clarity,
         // since the JVM requires a static method of the same name.
         String methodName = irFunction.name.equals("main") ? UL_MAIN_METHOD : irFunction.name;
-        var signature = new JasminMethodSignature(true, irFunction.type, methodName); // TODO remove?
+        // var signature = new JasminMethodSignature(true, irFunction.type, methodName); // TODO remove?
 
 
         // Write the method signature
@@ -196,6 +220,10 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
             var declaration = new JasminVariableDeclaration(temp, startLabel, endLabel);
             fileWriter.append('\t').println(declaration.toString());
         }
+
+        // Write the stack limit
+        fileWriter.append('\t').append(".limit stack ").println(stackLimit);
+        fileWriter.println();
 
         // Insert the start label before any of the "real" instructions
         // methodBuilder.addStatement(new JasminLabelInstruction(startLabel)); // TODO Just print the label manually?
@@ -272,6 +300,23 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         fileWriter.println(".end method");
     }
 
+    /**
+     * Chooses a value for the stack limit that will be sufficient
+     * for all functions.
+     */
+    private void setStackLimit(List<IRFunction> functions) {
+        stackLimit = 5; // Default minimum value
+
+        for (var f : functions) {
+            int argCount = f.type.argumentTypes.size();
+            int minStackLimit = argCount + 2; 
+
+            if (minStackLimit > stackLimit) {
+                stackLimit = minStackLimit;
+            }
+        }
+    }
+
     public Void visit(IRProgram irProgram) throws Exception {
         // Open the output file 
         className = irProgram.programName;
@@ -288,11 +333,14 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
             writeMainMethod();
             fileWriter.println();
 
-            // Add all the functions' types to an environment
+            // Add all the functions' types to an environment, and use their 
+            // arg counts to set a reasonable stack limit for all functions.
             for (var function : irProgram.functions) {
                 functionEnv.bind(function.name, function.type);
             }
+            setStackLimit(irProgram.functions);
 
+            // Generate the code for each function
             for (var function : irProgram.functions) {
                 function.accept(this);
             }
@@ -317,8 +365,13 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 
-    public Void visit(LocalTemp irLocalTemp) {
-        throw new UnsupportedOperationException("Not implemented"); // TODO
+    public Void visit(LocalTemp irTempLocal) {
+        // If this is called the temp is being used on the 
+        // RHS of an assignment, so we just need to push it
+        // onto the operand stack.
+        pushVariable(irTempLocal); 
+
+        return null;
     }
 
     public Void visit(NegationOperation irNegationOperation) {
@@ -326,22 +379,64 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
     }
 
     public Void visit(ParamTemp irTempParam) {
-        throw new UnsupportedOperationException("Not implemented"); // TODO
+        // If this is called the temp is being used on the 
+        // RHS of an assignment, so we just need to push it
+        // onto the operand stack.
+        pushVariable(irTempParam); 
+
+        return null;
     }
 
     public Void visit(PrintInstruction irPrintInstruction) {
-        throw new UnsupportedOperationException("Not implemented"); // TODO
+        var temp = irPrintInstruction.temp;
+
+        // Get access to system.out and printstream
+        fileWriter.println("\tgetstatic java/lang/System/out Ljava/io/PrintStream;");
+
+        // Push the value to be printed onto the operand stack.
+        pushVariable(temp);
+
+        // Call the appropriate print overload
+        fileWriter.append('\t')
+                  .append("invokevirtual java/io/PrintStream/print(")
+                  .append(temp.type().toJasminString())
+                  .println(")V");
+
+        return null;
     }
 
     public Void visit(PrintlnInstruction irPrintlnInstruction) {
-        throw new UnsupportedOperationException("Not implemented"); // TODO
+        var temp = irPrintlnInstruction.temp;
+
+        // Get access to system.out and printstream
+        fileWriter.println("\tgetstatic java/lang/System/out Ljava/io/PrintStream;");
+
+        // Push the value to be printed onto the operand stack.
+        pushVariable(temp);
+
+        // Call the appropriate print overload
+        fileWriter.append('\t')
+                  .append("invokevirtual java/io/PrintStream/println(")
+                  .append(temp.type().toJasminString())
+                  .println(")V");
+
+        return null;
     }
 
     public Void visit(ReturnInstruction irReturnInstruction) {
+        
+        
         if(irReturnInstruction.operand.isPresent()) {
-            // TODO I think we need to use ireturn etc. here after loading the return value.
-            // Check the behaviour for chars, booleans, and other types to see which to use.
-            throw new UnsupportedOperationException("Not implemented");
+            var temp = irReturnInstruction.operand.get();
+
+            // Push the value onto the operand stack and use the appropriate
+            // return instruction for the type of the variable being returned.
+            pushVariable(temp);
+            
+            String returnPrefix = jvmTypeMnemonic(temp.type());
+            fileWriter.append('\t')
+                      .append(returnPrefix)
+                      .println("return");
         }
         else {
             fileWriter.println("\treturn");
@@ -351,7 +446,16 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
     }
 
     public Void visit(TemporaryAssignmentInstruction irTempAssignmentInstruction) {
-        throw new UnsupportedOperationException("Not implemented"); // TODO NEXT
+        // Generate code to compute the value and push it onto
+        // the operand stack
+        var value = irTempAssignmentInstruction.value;
+        value.accept(this);
+
+        // Store the value into the destination
+        Temporary dest = irTempAssignmentInstruction.destination;
+        popVariable(dest);
+
+        return null;
     }
 
     public Void visit(Temporary irTemp) {
@@ -359,6 +463,11 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
     }
 
     public Void visit(TrueTemp irTemp) {
-        throw new UnsupportedOperationException("Not implemented"); // TODO
+        // If this is called the temp is being used on the 
+        // RHS of an assignment, so we just need to push it
+        // onto the operand stack.
+        pushVariable(irTemp); 
+
+        return null;
     }
 }

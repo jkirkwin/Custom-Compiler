@@ -4,7 +4,7 @@ import type.SimpleType;
 
 public class PrintlnInstruction implements IRInstruction {
 
-    private Temporary temp;
+    public final Temporary temp;
     
     public PrintlnInstruction(Temporary temp) {
         this.temp = temp;
