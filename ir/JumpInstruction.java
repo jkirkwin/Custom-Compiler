@@ -8,7 +8,7 @@ import common.Label;
  */
 public class JumpInstruction implements IRInstruction {
     
-    private final Label label;
+    public final Label label;
 
     public JumpInstruction(Label l) {
         label = l;

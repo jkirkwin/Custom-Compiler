@@ -5,7 +5,7 @@ import type.BooleanType;
 
 public class ConditionalJumpInstruction extends JumpInstruction {
 
-    private final Temporary condition;
+    public final Temporary condition;
 
     /**
      * Create a new conditional jump instruction that will go to the 

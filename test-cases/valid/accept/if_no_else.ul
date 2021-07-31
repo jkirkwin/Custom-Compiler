@@ -1,5 +1,7 @@
 void main() {
     if (true) {
-        print "Nice";
+        println "Nice";
     }
+
+    println "If nice did not print then this test failed";
 }

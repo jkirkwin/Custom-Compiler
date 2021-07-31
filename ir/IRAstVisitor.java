@@ -351,7 +351,7 @@ public class IRAstVisitor implements ASTVisitor<Temporary>  {
         // Evaluate the condition and negate it
         Temporary condition = node.condition.accept(this);
         Temporary negatedCondition = tempPool.acquireTemp(BooleanType.INSTANCE);
-        var negationExpression = NegationOperation.forBitwiseNegation(condition);
+        var negationExpression = new NegationOperation(condition);
         currentIRFunctionBuilder.addInstruction(
             new TemporaryAssignmentInstruction(negatedCondition, negationExpression)
         );
@@ -528,7 +528,7 @@ public class IRAstVisitor implements ASTVisitor<Temporary>  {
 
         // Evaluate the loop condition and negate it
         Temporary condition = node.condition.accept(this);
-        var negationOperation = NegationOperation.forBitwiseNegation(condition);
+        var negationOperation = new NegationOperation(condition);
         Temporary negatedCondition = tempPool.acquireTemp(BooleanType.INSTANCE);
         currentIRFunctionBuilder.addInstruction(
             new TemporaryAssignmentInstruction(negatedCondition, negationOperation)

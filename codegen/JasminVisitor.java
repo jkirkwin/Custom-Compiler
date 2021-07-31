@@ -83,7 +83,7 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
      * Write a label definition to the current function with a partial 
      * indent.
      */
-    private void writeLabel(Label label) {
+    private void writeLabelDeclaration(Label label) {
         fileWriter.append("  ").append(label.toJasminString()).println(":");
     }
 
@@ -124,7 +124,16 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
     }
 
     public Void visit(ConditionalJumpInstruction irConditionalJump) {
-        throw new UnsupportedOperationException("Not implemented"); // TODO
+        // Push a variable holding the condition onto the operand stack.
+        irConditionalJump.condition.accept(this);
+        
+        // The value on the stack was pushed as an integer. Determine
+        // if it corresponds to boolean true or false. ifne compares
+        // against 0 (false).
+        String labelString = irConditionalJump.label.toJasminString();
+        fileWriter.append('\t').append("ifne ").println(labelString);
+    
+        return null;
     }
 
     private void pushMethodArguments(IRFunctionCall functionCall) {
@@ -268,7 +277,7 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
 
         // Insert the start label before any of the "real" instructions
         // methodBuilder.addStatement(new JasminLabelInstruction(startLabel)); // TODO Just print the label manually?
-        writeLabel(startLabel);
+        writeLabelDeclaration(startLabel);
 
         // Visit each of the function's statements
         for (var instruction : irFunction.instructions) {
@@ -279,7 +288,7 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         // It's okay if this comes after a return instruction
         // because we're never jumping to the label.
         // methodBuilder.addStatement(new JasminLabelInstruction(endLabel)); // TODO Just print the label manually?
-        writeLabel(endLabel);
+        writeLabelDeclaration(endLabel);
 
         // Add the function to the program
         // programBuilder.addMethod(methodBuilder.build());
@@ -395,15 +404,19 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
     }
 
     public Void visit(JumpInstruction irJumpInstruction) {
-        throw new UnsupportedOperationException("Not implemented"); // TODO
+        String labelString = irJumpInstruction.label.toJasminString();
+        fileWriter.append("\tgoto ").println(labelString);
+
+        return null;
     }
 
     public Void visit(LabelInstruction irLabelInstruction) {
-        throw new UnsupportedOperationException("Not implemented"); // TODO
+        writeLabelDeclaration(irLabelInstruction.label);
+        return null;
     }
 
     public Void visit(Label irLabel) {
-        throw new UnsupportedOperationException("Not implemented"); // TODO
+        throw new UnsupportedOperationException("Code generation not required for label usages"); // TODO Revisit this if necessary
     }
 
     public Void visit(LocalTemp irTempLocal) {
@@ -416,7 +429,16 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
     }
 
     public Void visit(NegationOperation irNegationOperation) {
-        throw new UnsupportedOperationException("Not implemented"); // TODO
+        if ( !TypeUtils.isBoolean(irNegationOperation.operandType) ) {
+            throw new IllegalArgumentException("Code generation for negations is only supported for booleans");
+        }
+
+        // Take the XOR of the value to be negated with 1 to flip 0->1 or 1->0
+        pushVariable(irNegationOperation.operand);
+        fileWriter.println("\tldc 1");
+        fileWriter.println("\tixor");
+
+        return null;
     }
 
     public Void visit(ParamTemp irTempParam) {
