@@ -38,19 +38,40 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         }
     }
 
-    // TODO Add the necessary state:
-    // * Mappings for temporaries to their positions in the stack?
-    //  * Local variable table is used for this I think
+    /**
+     * Map a boolean value to its integer representation. This is
+     * used to let us load and store boolean values as integers on
+     * the operand stack.
+     */
+    private static int booleanToInt(boolean b) {
+        if (b) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+
+    /**
+     * Map an integer reperesentation of a boolean back its boolean value
+     */
+    private static boolean intToBoolean(int i) {
+        if (i == 1) {
+            return true;
+        }
+        else if (i == 0) {
+            return false;
+        }
+        else {
+            throw new IllegalArgumentException("Cannot convert integer " + i + " to boolean");
+        }
+    }
 
     private PrintWriter fileWriter;
     private String className;
     private int stackLimit;
     private final Environment<String, MethodType> functionEnv;
-
-
     // private final JasminProgram.Builder programBuilder;
-
-    // Per-function objects
     // private JasminMethod.Builder methodBuilder;
     private LabelFactory labelFactory;
 
@@ -143,7 +164,27 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
 
     public Void visit(IRConstant irConstant) {
         // Push the constant onto the operand stack.
-        fileWriter.append("\tldc ").println(irConstant.toString());
+        // Booleans and characters need to be converted to
+        // integer values.
+
+        fileWriter.print("\tldc ");
+
+        if (TypeUtils.isBoolean(irConstant.type())) {
+            var value = irConstant.value();
+            assert (value instanceof Boolean);
+            
+            fileWriter.println(booleanToInt((boolean)value));
+        }
+        else if (TypeUtils.isChar(irConstant.type())) {
+            var value = irConstant.value();
+            assert (value instanceof Character);
+            char charValue = ((Character)value).charValue();
+
+            fileWriter.println(((int)charValue)); 
+        }
+        else {
+            fileWriter.println(irConstant.toString());
+        }
 
         return null;
     }
