@@ -55,4 +55,8 @@ public class JasminVariableDeclaration implements JasminStatement {
                  .append(endLabel.toJasminString())
                  .toString();
     }
+
+    public String toString() {
+        return toJasminString();
+    }
 }

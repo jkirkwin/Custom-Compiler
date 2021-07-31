@@ -57,8 +57,11 @@ public class MethodType {
         argumentTypes = Collections.unmodifiableList(new ArrayList<Type>(argTypes));
     }
 
-    // TODO Rename to toIRString
     public String toString() {
+        return toJasminString();
+    }
+
+    public String toIRString() {
         StringBuilder sb = new StringBuilder("(");
 
         for (var t : argumentTypes) {
@@ -71,5 +74,16 @@ public class MethodType {
         return sb.toString();
     }
 
-    // TODO add toJasminString?
+    public String toJasminString() {
+        StringBuilder sb = new StringBuilder("(");
+
+        for (var t : argumentTypes) {
+            sb.append(t.toJasminString());
+        }
+
+        sb.append(')')
+          .append(returnType.toJasminString());
+
+        return sb.toString();
+    }
 }

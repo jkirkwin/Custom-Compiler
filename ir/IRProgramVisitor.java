@@ -34,7 +34,7 @@ public interface IRProgramVisitor <T> {
 
     public T visit(IRInstruction irInstruction);
 
-    public T visit(IRProgram irProgram); 
+    public T visit(IRProgram irProgram) throws Exception; 
     
     public T visit(JumpInstruction irJumpInstruction);
 

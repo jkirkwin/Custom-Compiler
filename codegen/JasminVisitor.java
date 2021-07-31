@@ -34,8 +34,6 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
     public JasminVisitor() {
         programBuilder = new JasminProgram.Builder();
     }
-
-    // TODO Add method to get the program after visiting.
     
     /**
      * Returns the generated JasminProgram after visiting and IRProgram.
@@ -43,6 +41,14 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
      */
     public JasminProgram buildJasminProgram() {
         return programBuilder.build();
+    }
+
+    /**
+     * Write a label definition to the current function with a partial 
+     * indent.
+     */
+    private void writeLabel(Label label) {
+        fileWriter.append("  ").append(label.toJasminString()).println(":");
     }
 
     public Void visit(ArrayAssignmentInstruction irArrayAssignment) {
@@ -59,6 +65,9 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
 
     public Void visit(FunctionCallInstruction irFunctionCall) {
         throw new UnsupportedOperationException("Not implemented"); // TODO
+
+
+
     }
 
     public Void visit(IRArrayAccess irArrayAccess) {
@@ -103,9 +112,18 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         // We rename the UL's main function to __main for clarity,
         // since the JVM requires a static method of the same name.
         String methodName = irFunction.name.equals("main") ? UL_MAIN_METHOD : irFunction.name;
-        var signature = new JasminMethodSignature(true, irFunction.type, methodName);
+        var signature = new JasminMethodSignature(true, irFunction.type, methodName); // TODO remove?
 
-        methodBuilder = new JasminMethod.Builder().withSignature(signature);
+
+        // Write the method signature
+        fileWriter.append(".method public static ")
+                  .append(methodName)
+                  .println(irFunction.type.toJasminString());
+
+        
+
+
+        // methodBuilder = new JasminMethod.Builder().withSignature(signature); // TODO Maybe remove or repurpose?
 
         // In case we need to generate extra labels that are not present
         // in the IR, find the maximum label used in the IR so we know
@@ -121,14 +139,18 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         var endLabel = labelFactory.getLabel();
 
         // Iterate over each of the function's temporaries and create declaration
-        // directives for each one them
+        // directives for each one them.
+        fileWriter.append("\t.limit locals ").println(irFunction.temps.size());  // It's okay if this is 0.
         for (var temp : irFunction.temps) {
-            methodBuilder.addVariable(new JasminVariableDeclaration(temp, startLabel, endLabel));
+            // methodBuilder.addVariable(new JasminVariableDeclaration(temp, startLabel, endLabel)); // TODO remove
+            var declaration = new JasminVariableDeclaration(temp, startLabel, endLabel);
+            fileWriter.append('\t').println(declaration.toString());
         }
 
         // Insert the start label before any of the "real" instructions
-        methodBuilder.addStatement(new JasminLabelInstruction(startLabel));
-        
+        // methodBuilder.addStatement(new JasminLabelInstruction(startLabel)); // TODO Just print the label manually?
+        writeLabel(startLabel);
+
         // Visit each of the function's statements
         for (var instruction : irFunction.instructions) {
             instruction.accept(this);
@@ -137,10 +159,14 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         // Before completing the function, add the end label.
         // It's okay if this comes after a return instruction
         // because we're never jumping to the label.
-        methodBuilder.addStatement(new JasminLabelInstruction(endLabel));
+        // methodBuilder.addStatement(new JasminLabelInstruction(endLabel)); // TODO Just print the label manually?
+        writeLabel(endLabel);
 
         // Add the function to the program
-        programBuilder.addMethod(methodBuilder.build());
+        // programBuilder.addMethod(methodBuilder.build());
+
+        fileWriter.println(".end method");
+        fileWriter.println();
 
         return null;
     }
@@ -196,7 +222,7 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         fileWriter.println(".end method");
     }
 
-    public Void visit(IRProgram irProgram) {
+    public Void visit(IRProgram irProgram) throws Exception {
         // Open the output file 
         String outputFileName = irProgram.programName + ".j";
         File outputFile = new File(outputFileName);
@@ -217,6 +243,7 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         }
         catch (Exception e) {
             fileWriter = null; // Clear the PrintWriter reference on error
+            throw e;
         }
     
         return null;
