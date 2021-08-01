@@ -30,3 +30,7 @@ UnnamedLanguage.tokens
 # Temporary files
 temp
 tmp
+
+# Jasmin
+*.j
+

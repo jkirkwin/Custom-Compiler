@@ -42,5 +42,5 @@ unit_test: compiler
 	java -ea ir.TempFactory
 
 clean:
-	rm -f *.class $(GNAME)*.java $(GNAME).tokens 
+	rm -f *.class $(GNAME)*.java $(GNAME).tokens *.j
 	for pkg in $(PACKAGES) ; do rm -f ./$$pkg/*.class ; done
