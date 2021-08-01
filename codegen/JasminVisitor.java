@@ -119,8 +119,213 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         throw new UnsupportedOperationException("Not implemented"); // TODO
     }
 
+    /**
+     * Write the instructions needed to concatenate two strings via a
+     * StringBuffer. The concatenated string is placed on the operand
+     * stack
+     */
+    private void concatenateStrings(Temporary s1, Temporary s2) {
+        // Create a StringBuffer to hold the result, and store a second copy
+        // of its reference on the stack so we can use it after initializing 
+        // it.
+        fileWriter.println("\tnew java/lang/StringBuffer");
+        fileWriter.println("\tdup");
+        fileWriter.println("\tinvokenonvirtual java/lang/StringBuffer/<init>()V");
+
+        // Append the first string (load then call append())
+        s1.accept(this);
+        fileWriter.println("\tinvokevirtual java/lang/StringBuffer/append(Ljava/lang/String;)Ljava/lang/StringBuffer;");
+        
+        // Append the second string
+        s2.accept(this);
+        fileWriter.println("\tinvokevirtual java/lang/StringBuffer/append(Ljava/lang/String;)Ljava/lang/StringBuffer;");
+
+        // Remove the string buffer from the stack and replace it with its
+        // string value.
+        fileWriter.println("\tinvokevirtual java/lang/StringBuffer/toString()Ljava/lang/String;");
+    }
+
+    /**
+     * Compare the top two values on the stack which are of the given
+     * type for equality and save a boolean result the stack.
+     */
+    private void checkEqual(Type operationType) {
+
+        // Strings, integers, and characters share the same code 
+        // structure:
+        //      Load operands
+        //      Compare them for equality (mechanism depends on type)
+        //      ifeq <true_label>
+        //      ldc 0 (false)
+        //      goto <done_label>
+        //    true_label:
+        //      ldc 1 (true)
+        //    done_label:
+        //
+        // Booleans use a simpler structure, where we take the 
+        // result as 
+        //      b1 xor b2 xor 1
+        // where b1 and b2 are the operands.
+
+        if (TypeUtils.isBoolean(operationType)) {
+            fileWriter.println("\tixor"); // xor of b1 and b2
+            fileWriter.println("\tldc 1");
+            fileWriter.println("\tixor"); // xor of (b1 xor b2) and 1
+            return;
+        }
+
+        fileWriter.print('\t');
+        if (TypeUtils.isInt(operationType) || TypeUtils.isChar(operationType)) {
+            // Simple subtraction
+            fileWriter.println("isub");
+        }
+        else if (TypeUtils.isFloat(operationType)) {
+            // Float comparison
+            fileWriter.println("fcmpg");
+        }
+        else if (TypeUtils.isString(operationType)) {
+            // Make a call to String.compareTo
+	        fileWriter.println("invokevirtual java/lang/String/compareTo(Ljava/lang/String;)I");
+        }
+        else {
+            throw new UnsupportedOperationException("Cannot order operands of type " + operationType.toString()); 
+        }
+
+        // The remainder of the logic is shared for all types 
+        // (except boolean which wouldn't get this far). 
+
+        var trueLabel = labelFactory.getLabel();
+        var doneLabel = labelFactory.getLabel();
+
+        // Check result and store false if the result is not true
+        fileWriter.append("\tifeq ")
+                  .println(trueLabel.toJasminString());
+        fileWriter.println("\tldc 0"); // False        
+        fileWriter.append("\tgoto ")
+                  .println(doneLabel.toJasminString());
+
+        // Store the value for true here.
+        writeLabelDeclaration(trueLabel);
+        fileWriter.println("\tldc 1"); // True
+
+        // Final label used to skip the true section in the case
+        // that the check is false.
+        writeLabelDeclaration(doneLabel);
+    }
+
+    /**
+     * Compare the top two values on the stack which are of the given
+     * type for the less-than relationship, and save a boolean result
+     * on the stack.
+     */
+    private void checkLessThan(Type operationType) {
+        // The general form of this comparison for all 
+        // supported types is:
+        //
+        //      -   Load operands (done prior to this function)
+        //      (*) Use subtraction or other mechanism to compare
+        //      -   iflt <true_label>
+        //      -   load 0 (false)
+        //      -   goto <done_label>
+        //      -   <true_label>:
+        //      -   load 1 (true)
+        //      -   <done_label>:
+        // 
+        // The (*) step is what differs based on the type
+        // of the operands.
+
+        fileWriter.print('\t');
+        if (TypeUtils.isInt(operationType) || TypeUtils.isChar(operationType)) {
+            // Simple subtraction
+            fileWriter.println("isub");
+        }
+        else if (TypeUtils.isFloat(operationType)) {
+            // Float comparison
+            fileWriter.println("fcmpg");
+        }
+        else if (TypeUtils.isString(operationType)) {
+            // Make a call to String.compareTo
+	        fileWriter.println("invokevirtual java/lang/String/compareTo(Ljava/lang/String;)I");
+        }
+        else {
+            throw new UnsupportedOperationException("Cannot order operands of type " + operationType.toString()); 
+        }
+
+        // The remainder of the logic is shared for all types. 
+        // We need to store a boolean value based on the result,
+        // since the result doesn't use the same 0-1 binary truth
+        // values we do.
+
+        var trueLabel = labelFactory.getLabel();
+        var doneLabel = labelFactory.getLabel();
+
+        // Check result and store false if the result is not true
+        fileWriter.append("\tiflt ")
+                  .println(trueLabel.toJasminString());
+        fileWriter.println("\tldc 0"); // False        
+        fileWriter.append("\tgoto ")
+                  .println(doneLabel.toJasminString());
+
+        // Store the value for true here.
+        writeLabelDeclaration(trueLabel);
+        fileWriter.println("\tldc 1"); // True
+
+        // Final label used to skip the true section in the case
+        // that the check is false.
+        writeLabelDeclaration(doneLabel);
+    }
+
     public Void visit(BinaryOperation irBinaryOperation) {
-        throw new UnsupportedOperationException("Not implemented"); // TODO
+        var operationType = irBinaryOperation.operationType();
+        var left = irBinaryOperation.left;
+        var right = irBinaryOperation.right; 
+
+        // Push the operands onto the stack, unless we're doing string concatenation.
+        if (! irBinaryOperation.operator.equals(BinaryOperation.Operators.PLUS) 
+                || ! TypeUtils.isString(operationType)) {
+            left.accept(this);
+            right.accept(this);
+        }
+
+        // Determine the appropriate instruction(s) to apply the 
+        // operation to the operands.
+        String operationPrefix = jvmTypeMnemonic(operationType);
+        String linePrefix = "\t" + operationPrefix;
+
+        switch(irBinaryOperation.operator) {
+            case PLUS: 
+                // Handle string concatenation case
+                if (TypeUtils.isString(operationType)) {
+                    concatenateStrings(left, right);
+                }
+                else {
+                    fileWriter.append(linePrefix).println("add");
+                }
+                break;
+            
+            case MINUS:
+                fileWriter.append(linePrefix).println("sub");
+                break;
+            
+            case MULTIPLY:
+                fileWriter.append(linePrefix).println("mul");
+                break;
+            
+            // Comparison operations are more complex so we isolate
+            // the logic in separate functions.
+            case EQUAL:
+                checkEqual(operationType);
+                break;
+            
+            case LESS:
+                checkLessThan(operationType);
+                break;
+            
+            default:
+                throw new IllegalStateException("No such operator is supported");
+        }
+
+        return null;
     }
 
     public Void visit(ConditionalJumpInstruction irConditionalJump) {

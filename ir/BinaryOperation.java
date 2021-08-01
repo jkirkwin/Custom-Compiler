@@ -17,15 +17,8 @@ public class BinaryOperation implements IRAssignableExpression {
         PLUS("+", OperatorGroups.ARITHMETIC),
         MINUS("-", OperatorGroups.ARITHMETIC),
         MULTIPLY("*", OperatorGroups.ARITHMETIC),
-        DIVIDE("/", OperatorGroups.ARITHMETIC),
-        REMAINDER("rem", OperatorGroups.ARITHMETIC),
-
         LESS("<", OperatorGroups.COMPARISON),
-        LESS_EQUAL("<=", OperatorGroups.COMPARISON),
-        GREATER(">", OperatorGroups.COMPARISON),
-        GREATER_EQUAL(">=", OperatorGroups.COMPARISON),
-        EQUAL("==", OperatorGroups.COMPARISON),
-        NOT_EQUAL("!=", OperatorGroups.COMPARISON);
+        EQUAL("==", OperatorGroups.COMPARISON);
 
         private final String operatorString;
         final OperatorGroups group;
@@ -50,24 +43,18 @@ public class BinaryOperation implements IRAssignableExpression {
                 }
             case MINUS:
             case MULTIPLY:
-            case DIVIDE:
-            case REMAINDER:
                 return TypeUtils.isInt(type)
                     || TypeUtils.isFloat(type)
                     || TypeUtils.isChar(type);
 
 
-            // Comparison operators are defined for the same types, except
-            // equality/inequality which also support booleans.
+            // Comparison operators are all defined for most types, but
+            // equality/inequality also support booleans.
             case EQUAL:
-            case NOT_EQUAL:
                 if (TypeUtils.isBoolean(type)) {
                     return true;
                 }
             case LESS:
-            case LESS_EQUAL:
-            case GREATER:
-            case GREATER_EQUAL:
                 return TypeUtils.isInt(type)
                     || TypeUtils.isFloat(type)
                     || TypeUtils.isChar(type)
@@ -94,9 +81,9 @@ public class BinaryOperation implements IRAssignableExpression {
         return new BinaryOperation(operator, left, right);
     }
 
-    private final Operators operator;
-    private final Temporary left;
-    private final Temporary right;
+    public final Operators operator;
+    public final Temporary left;
+    public final Temporary right;
 
     private BinaryOperation(Operators operator, Temporary left, Temporary right) {
         this.operator = operator;

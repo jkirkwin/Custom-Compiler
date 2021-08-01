@@ -1,0 +1,17 @@
+void main() {
+    string hello;
+    string world;
+    string hello_world;
+
+    hello = "Hello";
+    world = "World";
+
+    hello_world = concat(hello, ", ");
+    hello_world = concat(hello_world, concat(world, "!"));
+
+    println hello_world; // Should print "Hello, World!"
+}
+
+string concat(string s1, string s2) {
+    return s1 + s2;
+}

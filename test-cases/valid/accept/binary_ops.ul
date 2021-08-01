@@ -1,0 +1,57 @@
+void main() {
+    add();
+    subtract();
+    multiply();
+    less();
+    equal();
+}
+
+void add() {
+    println 1 + 1;
+    println 2.0 + 1.14;
+    println '1' + '2'; // ASCII 49 + 50 = 99 = 'c'
+}
+
+void subtract() {
+    println 2 - 1;
+    println 3.14 - 2.139;
+    println 'a' - ' '; // ASCII 97 - 32 = 65 = 'A'
+}
+
+void multiply() {
+    println 1 * 100; 
+    println 1.1 * 2.2; 
+}
+
+void less() {
+    println 1 < 2;
+    println 1 < 1;
+
+    println 1.5 < 1.51;
+    println 1.5 < 1.5;
+    
+    println '1' < '2';
+    println '1' < '1';
+
+    println "Hello" < "Hellp";
+    println "Hello" < "Hello";
+}
+
+void equal() {
+    println 1 == 1;
+    println 1 == 2;
+    
+    println 1.0 == 1.0;
+    println 1.0 == 1.1;
+    
+    println '1' == '1';
+    println '1' == 'a';
+
+    println true == true;
+    println true == false;
+    println false == false;
+    println false == true;
+
+    println "Hello" == "Hello";
+    println "Hello" == "Jello";
+}
