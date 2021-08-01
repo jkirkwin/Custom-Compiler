@@ -5,8 +5,8 @@ package ir;
  */
 public class ArrayAssignmentInstruction implements IRInstruction {
 
-    private final IRArrayAccess arrayAccess;
-    private final Temporary value;
+    public final IRArrayAccess arrayAccess;
+    public final Temporary value;
 
     public ArrayAssignmentInstruction(IRArrayAccess arrayAccess, Temporary value) {
         this.arrayAccess = arrayAccess;

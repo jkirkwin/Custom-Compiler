@@ -1,0 +1,124 @@
+// Coverage test that uses all array types as parameters,
+// return values, assignment targets, and accesses and 
+// assigns to their elements
+
+void main() {
+    // Create an array of each type here, and pass them to 
+    // other functions.
+    int[2] int_arr;
+    int[2] int_swapped;
+    float[2] float_arr;
+    float[2] float_swapped;
+    char[2] char_arr;
+    char[2] char_swapped;
+    boolean[2] boolean_arr;
+    boolean[2] boolean_swapped;
+    string[2] string_arr;
+    string[2] string_swapped;
+
+    int_arr[0] = 0 - 1;
+    int_arr[1] = 10;
+
+    float_arr[0] = 1.01;
+    float_arr[1] = 4.04;
+
+    char_arr[0] = 'A';
+    char_arr[1] = 'Z';
+
+    boolean_arr[0] = true;
+    boolean_arr[1] = false;
+
+    string_arr[0] = "Hello";
+    string_arr[1] = "World";
+
+    print_int_array(int_arr);
+    int_swapped = int_swap(int_arr);
+    print_int_array(int_swapped);
+
+    print_float_array(float_arr);
+    float_swapped = float_swap(float_arr);
+    print_float_array(float_swapped);
+
+    print_char_array(char_arr);
+    char_swapped = char_swap(char_arr);
+    print_char_array(char_swapped);
+
+    print_boolean_array(boolean_arr);
+    boolean_swapped = boolean_swap(boolean_arr);
+    print_boolean_array(boolean_swapped);
+
+    print_string_array(string_arr);
+    string_swapped = string_swap(string_arr);
+    print_string_array(string_swapped);
+}
+
+// Int
+void print_int_array(int[2] arr) {
+    print arr[0];
+    print " ";
+    println arr[1];
+}
+
+int[2] int_swap(int[2] original) {
+    int[2] swapped;
+    swapped[0] = original[1];
+    swapped[1] = original[0];
+    return swapped;
+}
+
+// Float
+void print_float_array(float[2] arr) {
+    print arr[0];
+    print " ";
+    println arr[1];
+}
+
+float[2] float_swap(float[2] original) {
+    float[2] swapped;
+    swapped[0] = original[1];
+    swapped[1] = original[0];
+    return swapped;
+}
+
+// Char 
+void print_char_array(char[2] arr) {
+    print arr[0];
+    print " ";
+    println arr[1];
+}
+
+char[2] char_swap(char[2] original) {
+    char[2] swapped;
+    swapped[0] = original[1];
+    swapped[1] = original[0];
+    return swapped;
+}
+
+// Boolean 
+void print_boolean_array(boolean[2] arr) {
+    print arr[0];
+    print " ";
+    println arr[1];
+}
+
+boolean[2] boolean_swap(boolean[2] original) {
+    boolean[2] swapped;
+    swapped[0] = original[1];
+    swapped[1] = original[0];
+    return swapped;
+}
+
+// String
+void print_string_array(string[2] arr) {
+    print arr[0];
+    print " ";
+    println arr[1];
+}
+
+string[2] string_swap(string[2] original) {
+    string[2] swapped;
+    swapped[0] = original[1];
+    swapped[1] = original[0];
+    return swapped;
+}
+

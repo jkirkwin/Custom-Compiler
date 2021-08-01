@@ -4,8 +4,8 @@ import type.ArrayType;
 
 public class IRArrayAccess implements IRAssignableExpression {
     
-    Temporary array;
-    Temporary index;
+    public final Temporary array;
+    public final Temporary index;
 
     public IRArrayAccess(Temporary array, Temporary index) {
         this.array = array;

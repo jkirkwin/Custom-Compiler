@@ -21,7 +21,7 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
 
     /**
      * Returns the JVM type mnemonic that is used to prefix load,
-     * store, etc. instructions. 
+     * store, etc. instructions.
      */
     private static String jvmTypeMnemonic(Type t) {
         if (TypeUtils.isReferenceType(t)) {
@@ -37,6 +37,33 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
             throw new IllegalArgumentException("Cannot get mnemonic for type " + t.toString());
         }
     }
+
+    /**
+     * Returns the JVM type mnemonic that is used to prefix load,
+     * store, etc. instructions specific to arrays.
+     */
+    private static String jvmArrayTypeMnemonic(ArrayType t) {
+        var elementType = t.simpleType;
+
+        if (TypeUtils.isReferenceType(elementType)) {
+            return "aa"; 
+        }
+        else if (TypeUtils.isInt(elementType)) {
+            return "ia";
+        }
+        else if (TypeUtils.isBoolean(elementType)) {
+            return "ba";
+        }
+        else if (TypeUtils.isChar(elementType)) {
+            return "ca";
+        }
+        else if (TypeUtils.isFloat(elementType)) {
+            return "fa";
+        }
+        else {
+            throw new IllegalArgumentException("Cannot get mnemonic for type " + t.toString());
+        }
+    } 
 
     /**
      * Map a boolean value to its integer representation. This is
@@ -116,7 +143,20 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
     }
 
     public Void visit(ArrayAssignmentInstruction irArrayAssignment) {
-        throw new UnsupportedOperationException("Not implemented"); // TODO
+        // Load a reference to the array, followed by the index and then the value
+        irArrayAssignment.arrayAccess.array.accept(this);
+        irArrayAssignment.arrayAccess.index.accept(this);
+        irArrayAssignment.value.accept(this);
+
+        // Use a store instruction specific to the type of the array.
+        var arrayTempType = irArrayAssignment.arrayAccess.array.type();
+        assert TypeUtils.isArray(arrayTempType);
+        ArrayType arrayType = (ArrayType) arrayTempType;
+
+        String prefix = jvmArrayTypeMnemonic(arrayType);
+        fileWriter.append('\t').append(prefix).println("store");
+
+        return null;
     }
 
     /**
@@ -365,11 +405,47 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
     }
 
     public Void visit(IRArrayAccess irArrayAccess) {
-        throw new UnsupportedOperationException("Not implemented"); // TODO
+
+        // Load a reference to the array followed by the index to access
+        pushVariable(irArrayAccess.array); // TODO Does this work?
+        pushVariable(irArrayAccess.index);
+
+        // Use a load instruction specific to the type of the array elements.
+        var arrayTempType = irArrayAccess.array.type();
+        assert TypeUtils.isArray(arrayTempType);
+        ArrayType arrayType = (ArrayType) arrayTempType;
+
+        String prefix = jvmArrayTypeMnemonic(arrayType);
+        fileWriter.append('\t').append(prefix).println("load");
+
+        return null;
     }
 
     public Void visit(IRArrayCreation irArrayCreation) {
-        throw new UnsupportedOperationException("Not implemented"); // TODO
+        // This is the right-hand side of an assignment to an 
+        // array-typed variable. We just need to push (a) the 
+        // array size and (b) a newarray expression with the 
+        // correct type.
+
+        var arrayType = irArrayCreation.arrayType;
+        int size = arrayType.size;
+        SimpleType elementType = arrayType.simpleType;
+
+        // The string to represent the type should be its full name in 
+        // Java (e.g. 'boolean' instead of 'Z') but String's need the 
+        // full prefix. 
+        boolean isStringType = TypeUtils.isString(elementType);
+        String typeString = isStringType
+                ? "java/lang/String"
+                : elementType.toString();
+
+        // The newarray instruction needs an 'a' prefix for reference types.
+        String newArrayInstruction = isStringType ? "anewarray" : "newarray";
+
+        fileWriter.append('\t').append("ldc ").println(size);
+        fileWriter.append('\t').append(newArrayInstruction).append(" ").println(typeString);
+
+        return null;
     }
 
     public Void visit(IRAssignableExpression irAssignableExpression) {
@@ -441,18 +517,11 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         // We rename the UL's main function to __main for clarity,
         // since the JVM requires a static method of the same name.
         String methodName = irFunction.name.equals("main") ? UL_MAIN_METHOD : irFunction.name;
-        // var signature = new JasminMethodSignature(true, irFunction.type, methodName); // TODO remove?
-
 
         // Write the method signature
         fileWriter.append(".method public static ")
                   .append(methodName)
                   .println(irFunction.type.toJasminString());
-
-        
-
-
-        // methodBuilder = new JasminMethod.Builder().withSignature(signature); // TODO Maybe remove or repurpose?
 
         // In case we need to generate extra labels that are not present
         // in the IR, find the maximum label used in the IR so we know
@@ -471,7 +540,6 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         // directives for each one them.
         fileWriter.append("\t.limit locals ").println(irFunction.temps.size());  // It's okay if this is 0.
         for (var temp : irFunction.temps) {
-            // methodBuilder.addVariable(new JasminVariableDeclaration(temp, startLabel, endLabel)); // TODO remove
             var declaration = new JasminVariableDeclaration(temp, startLabel, endLabel);
             fileWriter.append('\t').println(declaration.toString());
         }
@@ -481,22 +549,22 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         fileWriter.println();
 
         // Insert the start label before any of the "real" instructions
-        // methodBuilder.addStatement(new JasminLabelInstruction(startLabel)); // TODO Just print the label manually?
         writeLabelDeclaration(startLabel);
 
         // Visit each of the function's statements
         for (var instruction : irFunction.instructions) {
+            // In a comment, print each line of IR code before the corresponding
+            // assembly code.
+            fileWriter.println();
+            fileWriter.append(";\t\t").println(instruction.toString());
+
             instruction.accept(this);
         }
 
         // Before completing the function, add the end label.
         // It's okay if this comes after a return instruction
         // because we're never jumping to the label.
-        // methodBuilder.addStatement(new JasminLabelInstruction(endLabel)); // TODO Just print the label manually?
         writeLabelDeclaration(endLabel);
-
-        // Add the function to the program
-        // programBuilder.addMethod(methodBuilder.build());
 
         fileWriter.println(".end method");
         fileWriter.println();

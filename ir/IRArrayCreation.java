@@ -4,7 +4,7 @@ import type.ArrayType;
 
 public class IRArrayCreation implements IRAssignableExpression {
     
-    private final ArrayType arrayType;
+    public final ArrayType arrayType;
 
     public IRArrayCreation(ArrayType arrayType) {
         this.arrayType = arrayType;
