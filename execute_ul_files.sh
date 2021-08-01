@@ -13,7 +13,8 @@ fi
 FILES=$(find test-cases/valid/accept | grep $PATTERN)
 
 for f in ${FILES}; do
-    java -ea Compiler $f &>/dev/null
+    ./ul_to_class.sh $f
+
     if [[ $? -ne 0 ]]; then 
         echo "Compilation failed"
         exit 1
@@ -21,13 +22,6 @@ for f in ${FILES}; do
 
     BASE=$(basename $f)
     CLASS_NAME="${BASE%.*}"
-    IR_FILE_NAME=${CLASS_NAME}.ir
-
-    ./ir_to_class.sh $IR_FILE_NAME . &>/dev/null
-    if [[ $? -ne 0 ]]; then
-        echo "Code gen failed"
-        exit 1
-    fi
 
     echo -e '\n'
     echo "Running class $CLASS_NAME"

@@ -4,6 +4,7 @@ void main() {
 
 int foo(boolean foo) { // Parameters may shadow function names
     print foo;
+    return 2;
 }
 
 int bar(float baz) {
