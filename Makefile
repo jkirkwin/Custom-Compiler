@@ -38,7 +38,7 @@ compiler: grammar $(PACKAGES) Compiler.java
 	$(JAVAC) Compiler.java
 
 unit_test: compiler
-	java -ea semantic.Environment
+	java -ea common.Environment
 	java -ea ir.TempFactory
 
 clean:
