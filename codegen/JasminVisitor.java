@@ -98,12 +98,19 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
     private String className;
     private int stackLimit;
     private final Environment<String, MethodType> functionEnv;
-    // private final JasminProgram.Builder programBuilder;
-    // private JasminMethod.Builder methodBuilder;
     private LabelFactory labelFactory;
+
+    // This is used to remove extraneous instructions which directly follow
+    // a go-to or return instruction and are therefor always unreachable.
+    // This allows us to prevent a class of issues where there is an obvious 
+    // certainty for the programmer that their function is correct (e.g. will 
+    // always return a value), where the JVM will complain because it can't
+    // tell that the offending code is unreachable.
+    boolean isUnreachable;
 
     public JasminVisitor() {
         functionEnv = new Environment<String, MethodType>();
+        isUnreachable = false;
     }
     
     /**
@@ -112,6 +119,7 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
      */
     private void writeLabelDeclaration(Label label) {
         fileWriter.append("  ").append(label.toJasminString()).println(":");
+        isUnreachable = false;
     }
 
     /**
@@ -551,6 +559,9 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         // Insert the start label before any of the "real" instructions
         writeLabelDeclaration(startLabel);
 
+        // Re-set the reachability flag if its been set
+        isUnreachable = false;
+
         // Visit each of the function's statements
         for (var instruction : irFunction.instructions) {
             // In a comment, print each line of IR code before the corresponding
@@ -677,8 +688,14 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
     }
 
     public Void visit(JumpInstruction irJumpInstruction) {
+        if (isUnreachable) {
+            return null;
+        }
+        
         String labelString = irJumpInstruction.label.toJasminString();
         fileWriter.append("\tgoto ").println(labelString);
+
+        isUnreachable = true;
 
         return null;
     }
@@ -760,7 +777,9 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
     }
 
     public Void visit(ReturnInstruction irReturnInstruction) {
-        
+        if (isUnreachable) {
+            return null;
+        }
         
         if(irReturnInstruction.operand.isPresent()) {
             var temp = irReturnInstruction.operand.get();
@@ -773,10 +792,13 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
             fileWriter.append('\t')
                       .append(returnPrefix)
                       .println("return");
+            
         }
         else {
             fileWriter.println("\treturn");
         }
+
+        isUnreachable = true;
 
         return null;
     }
