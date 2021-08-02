@@ -23,4 +23,5 @@ void seven_args(int one, int two, int three, int four, int five, int six, int se
 
 int six_args(string s1, string s2, string s3, string s4, string s5, char c) {
     println "5 strings and a character";
+    return 1;
 }
