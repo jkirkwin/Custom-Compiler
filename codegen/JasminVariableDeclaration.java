@@ -11,7 +11,7 @@ import type.Type;
  * Each of these has a one-to-one correspondence with a temporary 
  * declaration in the IR.
  */
-public class JasminVariableDeclaration implements JasminStatement {
+public class JasminVariableDeclaration {
 
     public final int n;
     public final String name;
