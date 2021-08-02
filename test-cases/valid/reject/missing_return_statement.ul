@@ -1,0 +1,18 @@
+void main() {
+    int i;
+    i = foo(true);
+    println i;
+
+    i = foo(false);
+    println i;
+}
+
+int foo(boolean b) {
+    if (b) {
+        println "Returning something";
+        return 10;
+    }
+    else { // This branch is missing a return instruction
+        println "not returning anything";
+    }
+}
