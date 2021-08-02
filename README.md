@@ -28,22 +28,25 @@ are not checked at this stage due to their complexity.
 
 An intermediate representation is prescribed by the instructor. It defines the IR format to be used to generate bytecode for the JVM. The IR is designed specifically to make this translation process feasible on the course's tight schedule by making it reasonably similar in structure to Java bytecode. 
 
-After semantic checking is complete (assuming there are no errors), the `ir.IRVisitor` class is used to traverse the AST to produce an `ir.IRProgram` object. To create the intermediate representation instructions, this object can be printed to a .ir file. In the final assignment, the `IRProgram` will be compiled into a Jasmin .j file which can then be used to create a class file by invoking Jasmin.
+After semantic checking is complete (assuming there are no errors), the `ir.IRAstVisitor` class is used to traverse the AST to produce an `ir.IRProgram` object. This `IRProgram` object is then traversed by another visitor in the `codegen` package, which coverts each IR instruction/construct to corresponding Jasmin assembly code and writes the result to a Jasmin assembly file. Jasmin can then be used to convert the .j file to a runnable .class file.
 
 ## Tooling
 
 Lexing and parser generation is handled by ANTLR. Note that version 3.5.2 of ANTLR was used for pedagogical reasons. Current versions of ANTLR (4+) will not work with this source code package. 
 
+Class file assembly is performed using Jasmin. See http://jasmin.sourceforge.net/guide.html for details.
+
 ## Compilation
 To compile a .ul source file:
 * Download (or build) an appropriate (v3.x.x) ANTLR Jar
 * Add the ANTLR jar file to your `CLASSPATH`
+* Add a Jasmin jar file to your `CLASSPATH`
 * Build the compiler with `make`
-* Compile an input file with `java Compiler <inputfile>` to produce a .ir file
-* Use the provided `codegen` utility and Jasmin to create the corresponding class file.
+* Compile an input file with `java Compiler <inputfile>` to produce a .j file
+* Run `java jasmin.Main <foo.j>` to produce `foo.class`, which can be run with `java foo` 
 
 ## Testing
 
-Several sample input files are included in `test-cases/`. Running `run_tests.sh` will attempt to compile each one. There are some false negatives being reported at this time for invalid input files which print error messages but do not throw an exception to indicate failure. This is an issue with the antlr infrastructure provided by the instructor and is up to them to resolve.
+Several sample input files are included in `test-cases/`. Running `run_tests.sh` will attempt to compile and run each one.
 
 The lab machines do not appear to have JUnit installed and we are required to use Make rather than Gradle, so unit testing is being done manually using assertions in the source files' `main` methods. These unit tests can be run with `make all` or `make unit_test`.

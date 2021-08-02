@@ -2,19 +2,9 @@
 
 USAGE="Usage: run_tests [-v]"
 
-# Check for -v option
-if [[ $# -eq 1 ]]; then
-
-    if [ $1 == "-v" ]; then
-        echo "Verbosity enabled."
-        VERBOSE=1
-    else
-        echo $USAGE
-        exit 0
-    fi
-elif [[ $# -gt 1 ]]; then
+if [[ $# -ge 1 ]]; then
     echo $USAGE
-    exit 0
+    exit 1
 fi
 
 echo "Running Make"
@@ -40,54 +30,107 @@ INVALID_UL_FILES=$(find $INVALID_DIR -type f -name "*.ul")
 
 # Other constants
 JAVA_COMMAND="java -ea Compiler"
+JASMIN_COMMAND="java jasmin.Main"
+JASMIN_INCLUDE=/home/jcorless/csc435/codegen/setclasspath
+
+# Get the jasmin path so we can run the compiled files
+source $JASMIN_INCLUDE
 
 # Counters to be updated on each test
 FAILED=0
 PASSED=0
 TOTAL=0
 
-function run_test() {
-    file=$1
-    should_accept=$2
-
-    # Run the compiler
-    if [ -z ${VERBOSE+x} ]; then
-         $JAVA_COMMAND $file 2>/dev/null
-    else 
-        echo $file
-        $JAVA_COMMAND $file
-    fi
-
-    # Update the running counts and report the result
-    if [ $? -eq $should_accept ]; then
-        echo "Pass"
-        PASSED=$((PASSED + 1))
-    else
-        echo "FAIL (${file})"
-        FAILED=$((FAILED + 1))
-    fi;
-    
-    # Need an extra line separator when we're printing antlr output
-    if [ ! -z ${VERBOSE+x} ]; then
-        echo ""
-    fi
-
+function increment_total() {
     TOTAL=$((TOTAL + 1))
 }
 
+function test_passed() {
+    echo "Pass"
+    PASSED=$((PASSED + 1))
+    increment_total
+}
+
+function test_failed() {
+    echo "FAIL (${file})"
+    FAILED=$((FAILED + 1))
+    increment_total
+}
+
+
+function compile() {
+    FILE=$1
+    $JAVA_COMMAND $FILE
+    return $?
+}
+
+function get_class_name() {
+    SOURCE_FILE=$1
+    BASE=$(basename $SOURCE_FILE)
+    CLASS_NAME="${BASE%.*}"
+    echo $CLASS_NAME
+}
+
+function assemble() {
+    CLASS_NAME=$1
+    JASMIN_FILE=${CLASS_NAME}.j
+    $JASMIN_COMMAND $JASMIN_FILE
+    return $?
+}
+
+function run() {
+    CLASS_NAME=$1
+    java $CLASS_NAME
+    return $?
+}
+
+function compile_and_run() {
+    FILE=$1
+    CLASS_NAME=$(get_class_name $FILE)
+    
+    compile $FILE && assemble $CLASS_NAME && run $CLASS_NAME
+    return $?
+}
+
+function run_test_expect_failure() {
+    FILE=$1
+    
+    compile_and_run $FILE
+    if [ $? -ne 0 ]; then
+        test_passed
+    else
+        test_failed
+    fi
+}
+
+function run_test_expect_success() {
+    FILE=$1
+    
+    compile_and_run $FILE
+    if [ $? -eq 0 ]; then
+        test_passed
+    else
+        test_failed
+    fi
+}
+
+
 echo -e "\n\n==== Invalid files =====\n"
-for i in $INVALID_UL_FILES; do
-    run_test $i 1
+for f in $INVALID_UL_FILES; do
+    run_test_expect_failure $f
+    echo ""
 done
 
 echo -e "\n==== Valid files (Rejected) =====\n"
-for i in $VALID_REJECT_UL_FILES; do
-    run_test $i 1
+for f in $VALID_REJECT_UL_FILES; do
+    run_test_expect_failure $f
+    echo ""
 done
 
 echo -e "\n==== Valid files (Accepted) =====\n"
-for i in $VALID_ACCEPT_UL_FILES; do
-    run_test $i 0
+for f in $VALID_ACCEPT_UL_FILES; do
+    run_test_expect_success $f
+    echo ""
 done
 
 echo -e "\n"
