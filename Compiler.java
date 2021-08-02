@@ -81,10 +81,6 @@ public class Compiler {
 			// to the output file.
 			JasminVisitor jasminVisitor = new JasminVisitor();
 			jasminVisitor.visit(irProgram);
-
-			// TODO See if it's possible to run Jasmin to create the class file
-			// as part of this process. Not required for the assignment but would 
-			// be nice for testing.
         }
         catch (RecognitionException e )	{
     		// A lexical or parsing error occured.

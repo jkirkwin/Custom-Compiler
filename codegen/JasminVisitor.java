@@ -16,8 +16,12 @@ import java.util.List;
  */
 public class JasminVisitor implements IRProgramVisitor<Void> { 
 
-    private static final String OBJECT_CLASS = "java/lang/Object";
     private static final String UL_MAIN_METHOD = "__main";
+    
+    private static final String OBJECT_FQN = "java/lang/Object";
+    private static final String STRING_FQN = "java/lang/String";
+    private static final String STRING_BUFFER_FQN = "java/lang/StringBuffer";
+    private static final String PRINT_STREAM_FQN = "java/io/PrintStream";
 
     /**
      * Returns the JVM type mnemonic that is used to prefix load,
@@ -25,7 +29,7 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
      */
     private static String jvmTypeMnemonic(Type t) {
         if (TypeUtils.isReferenceType(t)) {
-            return "a"; // TODO Note that this is more complex for array accesses, where we need to use castore, bastore, etc.
+            return "a"; 
         }
         else if (TypeUtils.isInt(t) || TypeUtils.isBoolean(t) || TypeUtils.isChar(t)) {
             return "i";
@@ -64,6 +68,14 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
             throw new IllegalArgumentException("Cannot get mnemonic for type " + t.toString());
         }
     } 
+
+    /**
+     * Sanitizes a method name to make sure there are no conflicts with boilerplate
+     * JVM methods that are always added.
+     */
+    private static String sanitizeMethodName(String methodName) {
+        return methodName.equals("main") ? UL_MAIN_METHOD : methodName;
+    }
 
     /**
      * Map a boolean value to its integer representation. This is
@@ -126,7 +138,7 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
      * Uses a load instruction to push the value of a variable onto the 
      * operand stack.
      */
-    private void pushVariable(Temporary temp) { // TODO Test this for all types
+    private void pushVariable(Temporary temp) {
         // Choose appropriate load instruction based on the type 
         // of the value to be pushed. 
         // E.g. an integer will result in 
@@ -142,12 +154,93 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
      * Uses a store instruction to pop the value off the top of the
      * operand stack into the given variable.
      */
-    private void popVariable(Temporary temp) { // TODO Test this for all types
+    private void popVariable(Temporary temp) { 
         var prefix = jvmTypeMnemonic(temp.type());
         fileWriter.append('\t')
                   .append(prefix)
                   .append("store ")
                   .println(temp.globalIndex()); 
+    }
+
+    /**
+     * Starts a new static method for a function from the UL. The type is 
+     * looked up in the environment.
+     */
+    private void startMethod(String methodName) {
+        methodName = sanitizeMethodName(methodName);
+        startMethod(methodName, functionEnv.lookup(methodName));
+    }
+
+    /**
+     * Starts a new static method.
+     */
+    private void startMethod(String methodName, MethodType methodType) {
+        fileWriter.append(".method public static ")
+                  .append(methodName)
+                  .println(methodType.toJasminString());
+    }
+
+    private void endMethod() {
+        fileWriter.println(".end method");
+        fileWriter.println();
+    }
+
+    /**
+     * Instantiate an object of the given type with no 
+     * constructor arguments. Its reference will be placed
+     * on top of the operand stack.
+     */
+    private void instantiate(String qualifiedClassName) {
+        fileWriter.append("\tnew ").println(qualifiedClassName);
+    }
+
+    /**
+     * Writes an invoke instruction that calls the given class'
+     * <init> method.
+     */
+    private void invokeInitializer(String qualifiedClassName) {
+        fileWriter.append('\t')
+                  .append("invokenonvirtual ")
+                  .append(qualifiedClassName)
+                  .println("/<init>()V");
+    }
+
+    private void invokeVirtualMethod(String qualifiedClassName, String methodName, MethodType methodType) {
+        String qualifiedMethodName = qualifiedClassName + '/' + methodName;
+        invokeVirtualMethod(qualifiedMethodName, methodType);
+    }
+
+    /**
+     * Invoke a method on the given class using the invokevirtual instruction
+     */
+    private void invokeVirtualMethod(String qualifiedMethodName, MethodType methodType) {
+        fileWriter.append("\tinvokevirtual ")
+                  .append(qualifiedMethodName)
+                  .println(methodType.toJasminString());
+    }
+
+    /**
+     * Call an object's toString() method
+     * A reference to the object should already be placed on
+     * the operand stack.
+     */
+    private void callToString(String qualifiedClassName) {
+        var methodType = new MethodType(StringType.INSTANCE);
+        invokeVirtualMethod(qualifiedClassName, "toString", methodType);
+    }
+
+    /**
+     * Invoke a static method within this class
+     */
+    private void invokeStatic(String methodName) {
+        methodName = sanitizeMethodName(methodName);
+
+        String qualifiedMethodName = className + '/' + methodName;
+        MethodType methodType = functionEnv.lookup(methodName);
+
+        fileWriter.append("\tinvokestatic ")
+                  .append(qualifiedMethodName)
+                  .println(methodType.toJasminString());
     }
 
     public Void visit(ArrayAssignmentInstruction irArrayAssignment) {
@@ -168,89 +261,103 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
     }
 
     /**
+     * Call StringBuffer.append().
+     * The string to append and a reference to the StringBuffer should 
+     * already be placed on the operand stack.
+     */
+    private void stringBufferAppend() {
+        fileWriter.println("\tinvokevirtual java/lang/StringBuffer/append(Ljava/lang/String;)Ljava/lang/StringBuffer;");
+    }
+
+    /**
      * Write the instructions needed to concatenate two strings via a
      * StringBuffer. The concatenated string is placed on the operand
      * stack
      */
     private void concatenateStrings(Temporary s1, Temporary s2) {
-        // Create a StringBuffer to hold the result, and store a second copy
-        // of its reference on the stack so we can use it after initializing 
-        // it.
-        fileWriter.println("\tnew java/lang/StringBuffer");
-        fileWriter.println("\tdup");
-        fileWriter.println("\tinvokenonvirtual java/lang/StringBuffer/<init>()V");
+        // Create a StringBuffer to hold the result
+        instantiate(STRING_BUFFER_FQN);
+        fileWriter.println("\tdup"); // Duplicate buffer reference
+        invokeInitializer(STRING_BUFFER_FQN);
 
-        // Append the first string (load then call append())
+        // Append both strings to get the combined result
         s1.accept(this);
-        fileWriter.println("\tinvokevirtual java/lang/StringBuffer/append(Ljava/lang/String;)Ljava/lang/StringBuffer;");
-        
-        // Append the second string
+        stringBufferAppend();
         s2.accept(this);
-        fileWriter.println("\tinvokevirtual java/lang/StringBuffer/append(Ljava/lang/String;)Ljava/lang/StringBuffer;");
+        stringBufferAppend();
 
-        // Remove the string buffer from the stack and replace it with its
-        // string value.
-        fileWriter.println("\tinvokevirtual java/lang/StringBuffer/toString()Ljava/lang/String;");
+        // Replace the string buffer reference on the top of the stack
+        // with the concatenated string.
+        callToString(STRING_BUFFER_FQN);
     }
 
     /**
-     * Compare the top two values on the stack which are of the given
-     * type for equality and save a boolean result the stack.
+     * Calls String.compareTo(). There must be two strings already on 
+     * the operand stack to compare.
      */
-    private void checkEqual(Type operationType) {
+    void stringCompareTo() {
+        MethodType methodType = new MethodType.Builder()
+            .addArgumentType(StringType.INSTANCE)
+            .withReturnType(IntegerType.INSTANCE)
+            .build();
 
-        // Strings, integers, and characters share the same code 
-        // structure:
-        //      Load operands
-        //      Compare them for equality (mechanism depends on type)
-        //      ifeq <true_label>
+        invokeVirtualMethod(STRING_FQN, "compareTo", methodType);
+    }
+
+    /**
+     * Generate Jasmin instructions to compare the two operand values on top 
+     * of the stack and save an integer value indicating their relationship.
+     * 
+     * type is the type of the operands to compare.
+     * 
+     * The result will be zero if they are equal, negative if the first
+     * operand is less than the first, and positive otherwise.
+     */
+    private void compareValues(Type operationType) {
+        if (TypeUtils.isInt(operationType) || TypeUtils.isChar(operationType)) {
+            // Simple subtraction
+            fileWriter.println("\tisub");
+        }
+        else if (TypeUtils.isFloat(operationType)) {
+            // Float comparison
+            fileWriter.println("\tfcmpg");
+        }
+        else if (TypeUtils.isString(operationType)) {
+            stringCompareTo();
+        }
+        else {
+            throw new UnsupportedOperationException("Cannot compare operands of type " + operationType.toString()); 
+        }
+    }
+
+    /**
+     * Converts an integer value indicating the ordering of two operands
+     * in the standard convention used in compareTo() methods to a boolean
+     * (1 or 0) result that replaces the integer value on the top of the stack.
+     * 
+     * The boolean is computed using the provided comparison operation. This may be 
+     * one of "ifeq", "ifgt", "iflt", etc.
+     */
+    private void comparisonResultToBoolean(String comparisonOperation) {
+        // This construct uses two new labels to distinguish between the true and 
+        // false cases. The structure of the assembly code is as follows:
+        //      <ifeq | iflt | etc.> <true_label>
         //      ldc 0 (false)
         //      goto <done_label>
         //    true_label:
         //      ldc 1 (true)
         //    done_label:
-        //
-        // Booleans use a simpler structure, where we take the 
-        // result as 
-        //      b1 xor b2 xor 1
-        // where b1 and b2 are the operands.
-
-        if (TypeUtils.isBoolean(operationType)) {
-            fileWriter.println("\tixor"); // xor of b1 and b2
-            fileWriter.println("\tldc 1");
-            fileWriter.println("\tixor"); // xor of (b1 xor b2) and 1
-            return;
-        }
-
-        fileWriter.print('\t');
-        if (TypeUtils.isInt(operationType) || TypeUtils.isChar(operationType)) {
-            // Simple subtraction
-            fileWriter.println("isub");
-        }
-        else if (TypeUtils.isFloat(operationType)) {
-            // Float comparison
-            fileWriter.println("fcmpg");
-        }
-        else if (TypeUtils.isString(operationType)) {
-            // Make a call to String.compareTo
-	        fileWriter.println("invokevirtual java/lang/String/compareTo(Ljava/lang/String;)I");
-        }
-        else {
-            throw new UnsupportedOperationException("Cannot order operands of type " + operationType.toString()); 
-        }
-
-        // The remainder of the logic is shared for all types 
-        // (except boolean which wouldn't get this far). 
 
         var trueLabel = labelFactory.getLabel();
         var doneLabel = labelFactory.getLabel();
 
-        // Check result and store false if the result is not true
-        fileWriter.append("\tifeq ")
+        // Check result and store false if the comparison operation fails.
+        fileWriter.append('\t')
+                  .append(comparisonOperation)
+                  .append(' ')
                   .println(trueLabel.toJasminString());
         fileWriter.println("\tldc 0"); // False        
-        fileWriter.append("\tgoto ")
-                  .println(doneLabel.toJasminString());
+        fileWriter.append("\tgoto ").println(doneLabel.toJasminString());
 
         // Store the value for true here.
         writeLabelDeclaration(trueLabel);
@@ -259,6 +366,23 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         // Final label used to skip the true section in the case
         // that the check is false.
         writeLabelDeclaration(doneLabel);
+    }
+
+    /**
+     * Compare the top two values on the stack which are of the given
+     * type for equality and save a boolean result the stack.
+     */
+    private void checkEqual(Type operationType) {
+        // Booleans can be compared more quickly than other types using xor.
+        if (TypeUtils.isBoolean(operationType)) {
+            fileWriter.println("\tixor"); // xor of b1 and b2
+            fileWriter.println("\tldc 1");
+            fileWriter.println("\tixor"); // xor of (b1 xor b2) and 1
+            return;
+        }
+
+        compareValues(operationType);
+        comparisonResultToBoolean("ifeq");
     }
 
     /**
@@ -267,60 +391,8 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
      * on the stack.
      */
     private void checkLessThan(Type operationType) {
-        // The general form of this comparison for all 
-        // supported types is:
-        //
-        //      -   Load operands (done prior to this function)
-        //      (*) Use subtraction or other mechanism to compare
-        //      -   iflt <true_label>
-        //      -   load 0 (false)
-        //      -   goto <done_label>
-        //      -   <true_label>:
-        //      -   load 1 (true)
-        //      -   <done_label>:
-        // 
-        // The (*) step is what differs based on the type
-        // of the operands.
-
-        fileWriter.print('\t');
-        if (TypeUtils.isInt(operationType) || TypeUtils.isChar(operationType)) {
-            // Simple subtraction
-            fileWriter.println("isub");
-        }
-        else if (TypeUtils.isFloat(operationType)) {
-            // Float comparison
-            fileWriter.println("fcmpg");
-        }
-        else if (TypeUtils.isString(operationType)) {
-            // Make a call to String.compareTo
-	        fileWriter.println("invokevirtual java/lang/String/compareTo(Ljava/lang/String;)I");
-        }
-        else {
-            throw new UnsupportedOperationException("Cannot order operands of type " + operationType.toString()); 
-        }
-
-        // The remainder of the logic is shared for all types. 
-        // We need to store a boolean value based on the result,
-        // since the result doesn't use the same 0-1 binary truth
-        // values we do.
-
-        var trueLabel = labelFactory.getLabel();
-        var doneLabel = labelFactory.getLabel();
-
-        // Check result and store false if the result is not true
-        fileWriter.append("\tiflt ")
-                  .println(trueLabel.toJasminString());
-        fileWriter.println("\tldc 0"); // False        
-        fileWriter.append("\tgoto ")
-                  .println(doneLabel.toJasminString());
-
-        // Store the value for true here.
-        writeLabelDeclaration(trueLabel);
-        fileWriter.println("\tldc 1"); // True
-
-        // Final label used to skip the true section in the case
-        // that the check is false.
-        writeLabelDeclaration(doneLabel);
+        compareValues(operationType);
+        comparisonResultToBoolean("iflt");
     }
 
     public Void visit(BinaryOperation irBinaryOperation) {
@@ -370,7 +442,7 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
                 break;
             
             default:
-                throw new IllegalStateException("No such operator is supported");
+                throw new IllegalArgumentException("No such binary operation is supported");
         }
 
         return null;
@@ -415,7 +487,7 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
     public Void visit(IRArrayAccess irArrayAccess) {
 
         // Load a reference to the array followed by the index to access
-        pushVariable(irArrayAccess.array); // TODO Does this work?
+        pushVariable(irArrayAccess.array);
         pushVariable(irArrayAccess.index);
 
         // Use a load instruction specific to the type of the array elements.
@@ -490,15 +562,8 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
     public Void visit(IRFunctionCall irFunctionCall) {
         pushMethodArguments(irFunctionCall);
 
-        // Make the actual function call instruction
-        var functionName = irFunctionCall.functionName;
-        var functionType = functionEnv.lookup(functionName);
-        fileWriter.append('\t')
-                  .append("invokestatic ")
-                  .append(className)
-                  .append('/')
-                  .append(functionName)
-                  .println(functionType.toString());
+        var functionName = sanitizeMethodName(irFunctionCall.functionName);
+        invokeStatic(functionName);
 
         return null;
     }
@@ -524,12 +589,10 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
     public Void visit(IRFunction irFunction) {
         // We rename the UL's main function to __main for clarity,
         // since the JVM requires a static method of the same name.
-        String methodName = irFunction.name.equals("main") ? UL_MAIN_METHOD : irFunction.name;
+        String methodName = sanitizeMethodName(irFunction.name);
 
         // Write the method signature
-        fileWriter.append(".method public static ")
-                  .append(methodName)
-                  .println(irFunction.type.toJasminString());
+        startMethod(methodName);
 
         // In case we need to generate extra labels that are not present
         // in the IR, find the maximum label used in the IR so we know
@@ -577,8 +640,7 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         // because we're never jumping to the label.
         writeLabelDeclaration(endLabel);
 
-        fileWriter.println(".end method");
-        fileWriter.println();
+        endMethod();
 
         return null;
     }
@@ -600,7 +662,7 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
                 .println(className);
 
         fileWriter.append(".super ")
-                .println(OBJECT_CLASS);
+                .println(OBJECT_FQN);
 
         fileWriter.println();
     }
@@ -609,13 +671,11 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
      * Writes the boilerplate object initializer method to the output file.
      */
     private void writeObjectInitializer() {
-        // TODO Replace this with a shared function for when we're visiting an irFunction?
-        // TODO This is super gross but if it works, it works...
         fileWriter.println(".method public <init>()V");
         fileWriter.append('\t').println("aload_0");
-        fileWriter.append('\t').println("invokenonvirtual java/lang/Object/<init>()V");
+        invokeInitializer(OBJECT_FQN);
         fileWriter.append('\t').println("return");
-        fileWriter.println(".end method");
+        endMethod();
     }
 
     /**
@@ -623,15 +683,19 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
      * method.
      */
     private void writeMainMethod() {
-        // TODO Factor some of this out. We at least want a printMethodSignature function.
-        // TODO May even want to make a method builder that handles indentation etc for us.
         fileWriter.println("; Java main method to call the UL main method (" + UL_MAIN_METHOD + ")");
-        fileWriter.println(".method public static main([Ljava/lang/String;)V");
+
+        MethodType mainMethodType = new MethodType.Builder()
+            .withReturnType(VoidType.INSTANCE)
+            .addArgumentType(new ArrayType(1, StringType.INSTANCE)) // Size of array doesn't matter here.
+            .build();
+        startMethod("main", mainMethodType);
+
         fileWriter.append('\t').println(".limit locals 1");
         fileWriter.append('\t').println(".limit stack 4");
-        fileWriter.append('\t').append("invokestatic ").append(className).println("/__main()V");
+        invokeStatic(UL_MAIN_METHOD);
         fileWriter.append('\t').println("return");
-        fileWriter.println(".end method");
+        endMethod();
     }
 
     /**
@@ -652,8 +716,16 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
     }
 
     public Void visit(IRProgram irProgram) throws Exception {
-        // Open the output file 
         className = irProgram.programName;
+
+        // Add all the functions' types to an environment, and use their 
+        // arg counts to set a reasonable stack limit for all functions.
+        for (var function : irProgram.functions) {
+            functionEnv.bind(sanitizeMethodName(function.name), function.type);
+        }
+        setStackLimit(irProgram.functions);
+
+        // Open the output file 
         String outputFileName = className + ".j";
         File outputFile = new File(outputFileName);
         try (PrintWriter w = new PrintWriter(outputFile)) {
@@ -666,13 +738,6 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
             fileWriter.println();
             writeMainMethod();
             fileWriter.println();
-
-            // Add all the functions' types to an environment, and use their 
-            // arg counts to set a reasonable stack limit for all functions.
-            for (var function : irProgram.functions) {
-                functionEnv.bind(function.name, function.type);
-            }
-            setStackLimit(irProgram.functions);
 
             // Generate the code for each function
             for (var function : irProgram.functions) {
@@ -706,7 +771,7 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
     }
 
     public Void visit(Label irLabel) {
-        throw new UnsupportedOperationException("Code generation not required for label usages"); // TODO Revisit this if necessary
+        throw new UnsupportedOperationException("Code generation not required for label usages");
     }
 
     public Void visit(LocalTemp irTempLocal) {
@@ -740,6 +805,10 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         return null;
     }
 
+    private MethodType getPrintMethodType(Type argType) {
+        return new MethodType.Builder().addArgumentType(argType).build();
+    }
+
     public Void visit(PrintInstruction irPrintInstruction) {
         var temp = irPrintInstruction.temp;
 
@@ -750,10 +819,8 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         pushVariable(temp);
 
         // Call the appropriate print overload
-        fileWriter.append('\t')
-                  .append("invokevirtual java/io/PrintStream/print(")
-                  .append(temp.type().toJasminString())
-                  .println(")V");
+        var methodType = getPrintMethodType(temp.type());
+        invokeVirtualMethod(PRINT_STREAM_FQN, "print", methodType);
 
         return null;
     }
@@ -768,10 +835,8 @@ public class JasminVisitor implements IRProgramVisitor<Void> {
         pushVariable(temp);
 
         // Call the appropriate print overload
-        fileWriter.append('\t')
-                  .append("invokevirtual java/io/PrintStream/println(")
-                  .append(temp.type().toJasminString())
-                  .println(")V");
+        var methodType = getPrintMethodType(temp.type());
+        invokeVirtualMethod(PRINT_STREAM_FQN, "println", methodType);
 
         return null;
     }
