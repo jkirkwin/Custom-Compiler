@@ -117,18 +117,21 @@ function run_test_expect_success() {
 
 echo -e "\n\n==== Invalid files =====\n"
 for f in $INVALID_UL_FILES; do
+    echo $f
     run_test_expect_failure $f
     echo ""
 done
 
 echo -e "\n==== Valid files (Rejected) =====\n"
 for f in $VALID_REJECT_UL_FILES; do
+    echo $f
     run_test_expect_failure $f
     echo ""
 done
 
 echo -e "\n==== Valid files (Accepted) =====\n"
 for f in $VALID_ACCEPT_UL_FILES; do
+    echo $f
     run_test_expect_success $f
     echo ""
 done
